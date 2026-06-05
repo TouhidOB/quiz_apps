@@ -1,0 +1,210 @@
+{% extends "quizzes/base.html" %}
+{% load quiz_extras %}
+
+{% block title %}Taking: {{ quiz.name }} — QuizMaster{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Anti-cheat: disable text selection during quiz */
+    .quiz-secure-zone {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+    /* Question progress bar */
+    .question-progress-bar {
+        background: rgba(255,255,255,0.06);
+        border-radius: 100px;
+        height: 8px;
+        overflow: hidden;
+        flex: 1;
+    }
+    .question-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        border-radius: 100px;
+        transition: width 0.4s ease;
+        min-width: 0;
+    }
+    .question-progress-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0 6px;
+    }
+    .question-progress-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+    /* Prev/Next navigation */
+    .quiz-nav-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        margin-top: 4px;
+    }
+    .quiz-nav-bar .btn {
+        min-width: 120px;
+    }
+    .quiz-nav-indicator {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+    /* Hide all questions except current when in paginated mode */
+    .question-card.q-hidden {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container quiz-secure-zone">
+    <div class="row g-4">
+        <!-- Quiz Content -->
+        <div class="col-lg-9">
+            <!-- Timer Bar -->
+            <div class="timer-bar" id="timerBar">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-stopwatch-fill fs-5" style="color: var(--accent-tertiary);"></i>
+                    <div class="timer-display" id="timerDisplay">{{ quiz.time_limit }}:00</div>
+                </div>
+                <div class="timer-progress">
+                    <div class="timer-progress-bar" id="timerProgressBar" style="width: 100%;"></div>
+                </div>
+                <div class="text-muted small fw-600">
+                    <span id="answeredCount">0</span>/{{ questions|length }}
+                </div>
+            </div>
+
+            <!-- Question Progress Bar -->
+            <div class="question-progress-wrapper">
+                <span class="question-progress-label">
+                    <i class="bi bi-bar-chart-steps me-1"></i>
+                    <span id="progressText">Question 1 of {{ questions|length }}</span>
+                </span>
+                <div class="question-progress-bar">
+                    <div class="question-progress-fill" id="questionProgressFill" style="width: {{ questions|length|percentage:questions|length }}%;"></div>
+                </div>
+                <span class="question-progress-label" id="progressPercent">0%</span>
+            </div>
+
+            <!-- Quiz Form -->
+            <form id="quizForm" method="post" action="{% url 'submit_quiz' slug=quiz.slug %}">
+                {% csrf_token %}
+                <input type="hidden" name="selected_question_ids" value="{{ selected_ids }}">
+
+                {% for question in questions %}
+                <div class="question-card {% if not forloop.first %}q-hidden{% endif %}" id="question-{{ forloop.counter }}" data-question="{{ forloop.counter }}">
+                    <div class="d-flex align-items-start mb-3">
+                        <span class="question-number">{{ forloop.counter }}</span>
+                        <div class="question-text">{{ question.text }}</div>
+                    </div>
+
+                    <div class="choices-wrapper">
+                        {% for choice in question.shuffled_choices %}
+                        <label class="choice-option" data-question-id="{{ question.id }}">
+                            <input type="radio"
+                                   name="question_{{ question.id }}"
+                                   value="{{ choice.id }}">
+                            <span class="choice-label">{{ forloop.counter0|letter_index }}</span>
+                            <span>{{ choice.text }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Prev/Next Navigation -->
+                <div class="quiz-nav-bar" id="quizNavBar">
+                    <button type="button" class="btn btn-glass" id="prevBtn" disabled>
+                        <i class="bi bi-chevron-left me-1"></i> Previous
+                    </button>
+                    <span class="quiz-nav-indicator" id="navIndicator">1 / {{ questions|length }}</span>
+                    <button type="button" class="btn btn-gradient" id="nextBtn">
+                        Next <i class="bi bi-chevron-right ms-1"></i>
+                    </button>
+                </div>
+
+                <!-- Submit -->
+                <div class="d-flex justify-content-between align-items-center mt-3 mb-5" id="submitSection" style="display: none !important;">
+                    <div class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Review your answers before submitting. You cannot change them after submission.
+                    </div>
+                    <button type="submit" class="btn btn-gradient btn-gradient-lg" id="submitBtn">
+                        <i class="bi bi-check-circle-fill me-2"></i> Submit Quiz
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Progress Sidebar -->
+        <div class="col-lg-3">
+            <div class="progress-sidebar">
+                <div class="glass-card-static">
+                    <h6 class="fw-700 mb-3 small text-uppercase" style="letter-spacing: 0.06em; color: var(--text-muted);">
+                        Question Navigator
+                    </h6>
+                    <div class="progress-grid">
+                        {% for question in questions %}
+                        <a href="#question-{{ forloop.counter }}"
+                           class="progress-dot {% if forloop.first %}current{% endif %}"
+                           id="dot-{{ forloop.counter }}"
+                           data-question="{{ forloop.counter }}">
+                            {{ forloop.counter }}
+                        </a>
+                        {% endfor %}
+                    </div>
+
+                    <hr style="border-color: var(--glass-border);">
+
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">Answered</span>
+                        <span class="fw-600" id="sidebarAnswered">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">Remaining</span>
+                        <span class="fw-600" id="sidebarRemaining">{{ questions|length }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-submit modal -->
+<div class="modal fade" id="timeUpModal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-secondary); border: 1px solid var(--glass-border);">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-alarm-fill fs-1 text-danger mb-3 d-block"></i>
+                <h4 class="fw-700">Time's Up!</h4>
+                <p class="text-muted">Your quiz is being submitted automatically...</p>
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize quiz timer
+    const TOTAL_SECONDS = {{ time_limit_seconds }};
+    const TOTAL_QUESTIONS = {{ questions|length }};
+
+    $(document).ready(function() {
+        initQuizTimer(TOTAL_SECONDS);
+        initChoiceHandlers(TOTAL_QUESTIONS);
+        initQuizNavigation(TOTAL_QUESTIONS);
+        initAntiCheat();
+    });
+</script>
+{% endblock %}

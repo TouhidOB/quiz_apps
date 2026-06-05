@@ -1,0 +1,124 @@
+{% extends "quizzes/base.html" %}
+{% load static %}
+
+{% block title %}Quiz Packages — QuizMaster{% endblock %}
+{% block meta_description %}Browse premium quiz packages — bundled quizzes at great prices. Enroll now and test your skills across multiple topics.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="pkg-hero-section">
+    <div class="container">
+        <div class="text-center">
+            <div class="pkg-hero-badge fade-in-up">
+                <i class="bi bi-box-seam-fill"></i> Quiz Packages
+            </div>
+            <h1 class="hero-title fade-in-up">
+                Bundled Quizzes for<br>
+                <span class="text-gradient">Maximum Learning</span>
+            </h1>
+            <p class="hero-subtitle fade-in-up fade-in-up-delay-1">
+                Get access to curated collections of quizzes at unbeatable prices.
+                Each package is designed to help you master a complete skill set.
+            </p>
+
+            <!-- Stats -->
+            <div class="stats-row fade-in-up fade-in-up-delay-2">
+                <div class="stat-chip">
+                    <i class="bi bi-box-seam-fill text-info"></i>
+                    <span class="stat-value">{{ total_packages }}</span> Package{{ total_packages|pluralize }}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Packages Grid -->
+<section class="pb-5">
+    <div class="container">
+        <div class="row g-4">
+            {% for package in packages %}
+            <div class="col-md-6 col-lg-4">
+                <div class="pkg-card glass-card">
+                    <!-- Discount Badge -->
+                    {% if package.has_discount %}
+                    <div class="pkg-discount-badge">
+                        <i class="bi bi-tag-fill"></i> {{ package.discount_percentage }}% OFF
+                    </div>
+                    {% endif %}
+
+                    <!-- Icon -->
+                    <div class="pkg-card-icon">
+                        <i class="bi {{ package.icon }}"></i>
+                    </div>
+
+                    <!-- Content -->
+                    <h3 class="pkg-card-title">{{ package.name }}</h3>
+                    <p class="pkg-card-desc">{{ package.description|truncatewords:20 }}</p>
+
+                    <!-- Meta -->
+                    <div class="pkg-card-meta">
+                        <div class="pkg-meta-item">
+                            <i class="bi bi-journal-check"></i>
+                            <span>{{ package.quiz_count }} Quiz{{ package.quiz_count|pluralize:"zes" }}</span>
+                        </div>
+                        <div class="pkg-meta-item">
+                            <i class="bi bi-people-fill"></i>
+                            <span>{{ package.enrollment_count }} Enrolled</span>
+                        </div>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="pkg-card-price">
+                        {% if package.has_discount %}
+                            <span class="pkg-price-original">৳{{ package.price }}</span>
+                            <span class="pkg-price-current">
+                                {% if package.effective_price == 0 %}Free{% else %}৳{{ package.effective_price }}{% endif %}
+                            </span>
+                        {% else %}
+                            <span class="pkg-price-current">
+                                {% if package.price == 0 %}Free{% else %}৳{{ package.price }}{% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- CTA -->
+                    <a href="{{ package.get_absolute_url }}" class="btn {% if package.is_enrolled %}btn-glass{% else %}btn-gradient{% endif %} w-100 mt-3">
+                        {% if package.is_enrolled %}
+                            <i class="bi bi-check-circle-fill me-1"></i> View Package
+                        {% else %}
+                            <i class="bi bi-arrow-right-circle-fill me-1"></i> View Details
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state text-center py-5">
+                    <i class="bi bi-box-seam d-block" style="font-size: 3rem; color: var(--text-muted);"></i>
+                    <h5 class="mt-3">No Packages Available Yet</h5>
+                    <p class="text-muted">Check back soon — exciting quiz bundles are on the way!</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+{% if not user.is_authenticated %}
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-banner">
+            <h2>Ready to <span class="text-gradient">Level Up?</span></h2>
+            <p>Create a free account to enroll in packages and start learning today.</p>
+            <a href="{% url 'register' %}" class="btn btn-gradient btn-gradient-lg me-2">
+                <i class="bi bi-rocket-takeoff-fill me-2"></i> Create Free Account
+            </a>
+            <a href="{% url 'login' %}" class="btn btn-glass btn-gradient-lg">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

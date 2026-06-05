@@ -1,0 +1,90 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Employees{% endblock %}
+{% block page_title %}Employees{% endblock %}
+{% block page_subtitle %}Manage staff members and their access{% endblock %}
+
+{% with active_page='employees' %}{% endwith %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div></div>
+    <a href="{% url 'dashboard_employee_create' %}" class="btn btn-gradient">
+        <i class="bi bi-person-plus-fill me-2"></i> Add Employee
+    </a>
+</div>
+
+<div class="dash-card">
+    <div class="dash-card-body p-0">
+        {% if employees %}
+        <div class="table-responsive">
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th style="width:100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="profile-avatar" style="width:34px;height:34px;font-size:0.75rem;">
+                                    {{ emp.first_name.0|default:"?" }}{{ emp.last_name.0 }}
+                                </div>
+                                <div>
+                                    <div class="fw-600">{{ emp.get_full_name|default:emp.username }}</div>
+                                    <small class="text-muted">@{{ emp.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><small class="text-muted">{{ emp.email|default:"—" }}</small></td>
+                        <td>
+                            {% if emp.is_superuser %}
+                                <span class="quiz-badge" style="background:rgba(239,68,68,0.12);color:#ef4444;">Admin</span>
+                            {% else %}
+                                <span class="quiz-badge" style="background:rgba(59,130,246,0.12);color:#3b82f6;">Staff</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if emp.is_active %}
+                                <span class="quiz-badge badge-pass">Active</span>
+                            {% else %}
+                                <span class="quiz-badge badge-fail">Disabled</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ emp.date_joined|date:"M d, Y" }}</small></td>
+                        <td>
+                            <div class="dash-actions">
+                                {% if emp != request.user %}
+                                <form method="post" action="{% url 'dashboard_employee_toggle' pk=emp.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dash-action-btn {% if emp.is_active %}danger{% endif %}" title="{% if emp.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                        <i class="bi {% if emp.is_active %}bi-person-dash{% else %}bi-person-check{% endif %}"></i>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <span class="text-muted small" style="font-size:0.72rem;">You</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="dash-empty">
+            <i class="bi bi-people d-block"></i>
+            <h5>No Staff Members</h5>
+            <p>Add employees to help manage quizzes and content.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}{{ action }} Department{% endblock %}
+{% block page_title %}{{ action }} Department{% endblock %}
+{% block page_subtitle %}{% if action == 'Create' %}Add a new department for organizing quizzes{% else %}Update department details{% endif %}{% endblock %}
+
+{% block dash_content %}
+<div class="dash-form-card">
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert alert-danger glass-alert mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Please fix the errors below.
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label">Department Name <span class="text-danger">*</span></label>
+            {{ form.name }}
+            {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+            {{ form.description }}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.icon.id_for_label }}" class="form-label">Icon</label>
+            <div class="d-flex align-items-center gap-3">
+                {{ form.icon }}
+                <div class="dash-stat-icon" id="iconPreview" style="width:40px;height:40px;background:rgba(99,102,241,0.12);color:var(--accent-primary);">
+                    <i class="bi {{ form.icon.value }}" id="iconPreviewI"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <div class="form-check">
+                {{ form.is_active }}
+                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-gradient">
+                <i class="bi bi-check-lg me-2"></i> {{ action }} Department
+            </button>
+            <a href="{% url 'dashboard_departments' %}" class="btn btn-glass">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Live icon preview
+    $('#id_icon').on('change', function() {
+        const iconClass = $(this).val();
+        $('#iconPreviewI').attr('class', 'bi ' + iconClass);
+    });
+</script>
+{% endblock %}

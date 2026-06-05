@@ -1,0 +1,77 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Departments{% endblock %}
+{% block page_title %}Departments{% endblock %}
+{% block page_subtitle %}Create and manage quiz departments{% endblock %}
+
+{% with active_page='departments' %}{% endwith %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div></div>
+    <a href="{% url 'dashboard_department_create' %}" class="btn btn-gradient">
+        <i class="bi bi-plus-lg me-2"></i> New Department
+    </a>
+</div>
+
+<div class="dash-card">
+    <div class="dash-card-body p-0">
+        {% if departments %}
+        <div class="table-responsive">
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th>Icon</th>
+                        <th>Name</th>
+                        <th>Quizzes</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th style="width: 120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dept in departments %}
+                    <tr>
+                        <td>
+                            <div class="dash-stat-icon" style="width:36px;height:36px;font-size:1rem;background:rgba(99,102,241,0.12);color:var(--accent-primary);">
+                                <i class="bi {{ dept.icon }}"></i>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-600">{{ dept.name }}</div>
+                            <small class="text-muted">{{ dept.description|truncatewords:10 }}</small>
+                        </td>
+                        <td><span class="fw-600">{{ dept.quiz_total }}</span></td>
+                        <td>
+                            {% if dept.is_active %}
+                                <span class="quiz-badge badge-pass">Active</span>
+                            {% else %}
+                                <span class="quiz-badge badge-fail">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ dept.created_at|date:"M d, Y" }}</small></td>
+                        <td>
+                            <div class="dash-actions">
+                                <a href="{% url 'dashboard_department_edit' pk=dept.pk %}" class="dash-action-btn" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'dashboard_department_delete' pk=dept.pk %}" class="dash-action-btn danger" title="Delete">
+                                    <i class="bi bi-trash3"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="dash-empty">
+            <i class="bi bi-collection d-block"></i>
+            <h5>No Departments</h5>
+            <p>Create your first department to get started.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

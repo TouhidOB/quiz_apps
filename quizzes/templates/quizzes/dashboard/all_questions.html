@@ -1,0 +1,151 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}All Questions{% endblock %}
+{% block page_title %}All Questions{% endblock %}
+{% block page_subtitle %}{{ total_questions }} questions across all quizzes · Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endblock %}
+
+{% block dash_content %}
+<!-- Filters -->
+<div class="dash-card mb-4">
+    <div class="dash-card-body" style="padding: 1rem 1.25rem;">
+        <form method="get" class="d-flex flex-wrap gap-3 align-items-end">
+            <div style="min-width: 200px; flex: 1;">
+                <label class="form-label small fw-600 text-muted mb-1">Filter by Quiz</label>
+                <select name="quiz" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Quizzes</option>
+                    {% for q in quizzes %}
+                    <option value="{{ q.pk }}" {% if selected_quiz == q.pk %}selected{% endif %}>
+                        {{ q.name }} ({{ q.question_count }} questions)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="min-width: 250px; flex: 2;">
+                <label class="form-label small fw-600 text-muted mb-1">Search Questions</label>
+                <div class="input-group input-group-sm">
+                    <input type="text" name="q" class="form-control" placeholder="Search question text..." value="{{ search_query }}">
+                    <button type="submit" class="btn btn-glass btn-sm">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            {% if search_query or selected_quiz %}
+            <a href="{% url 'dashboard_all_questions' %}" class="btn btn-glass btn-sm" style="height: fit-content;">
+                <i class="bi bi-x-lg me-1"></i> Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Questions List -->
+<div class="dash-card">
+    <div class="dash-card-header">
+        <h5><i class="bi bi-list-ol me-2"></i>Questions ({{ page_obj.paginator.count }})</h5>
+        <span class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    </div>
+    <div class="dash-card-body">
+        {% if page_obj %}
+            {% for q in page_obj %}
+            <div class="dash-question-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex gap-3 align-items-start flex-grow-1" style="min-width: 0;">
+                        <div class="dash-question-num">{{ q.order }}</div>
+                        <div style="min-width: 0; flex: 1;">
+                            <div class="fw-600 mb-1" style="word-wrap: break-word;">{{ q.text }}</div>
+                            <div class="d-flex flex-wrap gap-1 mb-1">
+                                {% for choice in q.choices.all %}
+                                <span class="dash-choice-chip {% if choice.is_correct %}correct{% else %}wrong{% endif %}">
+                                    {% if choice.is_correct %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+                                    {{ choice.text|truncatechars:60 }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            <span class="text-muted" style="font-size: 0.72rem;">
+                                <i class="bi bi-journal-text me-1"></i>{{ q.quiz.name }}
+                                <span class="mx-1">·</span>
+                                <i class="bi bi-collection me-1"></i>{{ q.quiz.department.name }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-1 flex-shrink-0 ms-2">
+                        <a href="{% url 'dashboard_edit_question' pk=q.pk %}?next={{ request.get_full_path|urlencode }}"
+                           class="dash-action-btn" title="Edit">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <form method="post" action="{% url 'dashboard_delete_question' pk=q.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="dash-action-btn danger" title="Delete"
+                                    onclick="return confirm('Delete question #{{ q.order }}?');">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="dash-empty">
+                <i class="bi bi-question-circle d-block"></i>
+                <h5>No Questions Found</h5>
+                <p>{% if search_query %}No questions match your search.{% else %}No questions have been added yet.{% endif %}</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination pagination-sm" style="gap: 0.25rem;">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1{% if selected_quiz %}&quiz={{ selected_quiz }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               style="background: var(--glass-bg); border-color: var(--glass-border); color: var(--text-secondary);">
+                <i class="bi bi-chevron-double-left"></i>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_quiz %}&quiz={{ selected_quiz }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               style="background: var(--glass-bg); border-color: var(--glass-border); color: var(--text-secondary);">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active">
+                <span class="page-link"
+                      style="background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid)); border-color: transparent; color: #fff;">
+                    {{ num }}
+                </span>
+            </li>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if selected_quiz %}&quiz={{ selected_quiz }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+                   style="background: var(--glass-bg); border-color: var(--glass-border); color: var(--text-secondary);">
+                    {{ num }}
+                </a>
+            </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_quiz %}&quiz={{ selected_quiz }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               style="background: var(--glass-bg); border-color: var(--glass-border); color: var(--text-secondary);">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_quiz %}&quiz={{ selected_quiz }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}"
+               style="background: var(--glass-bg); border-color: var(--glass-border); color: var(--text-secondary);">
+                <i class="bi bi-chevron-double-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

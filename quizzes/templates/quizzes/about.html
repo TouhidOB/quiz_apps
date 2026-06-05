@@ -1,0 +1,119 @@
+{% extends "quizzes/base.html" %}
+{% load static %}
+
+{% block title %}About Us — QuizMaster{% endblock %}
+{% block meta_description %}Learn about QuizMaster's mission to make knowledge assessment accessible, engaging, and effective for professionals and organizations worldwide.{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1 class="fade-in-up">About <span class="text-gradient">QuizMaster</span></h1>
+        <p class="fade-in-up fade-in-up-delay-1">Empowering professionals and organizations with intelligent, engaging knowledge assessments.</p>
+    </div>
+</section>
+
+<!-- Our Story -->
+<section class="pb-5">
+    <div class="container">
+        <div class="about-story fade-in-up">
+            <h3><i class="bi bi-book-half text-gradient me-2"></i>Our Story</h3>
+            <p>QuizMaster was born from a simple observation: traditional knowledge assessments were often tedious, outdated, and disconnected from the real-world skills professionals need. We set out to build something better — a platform that makes testing and learning genuinely engaging.</p>
+            <p>Founded in 2026, our platform has rapidly grown to serve professionals across multiple industries. From civil engineers preparing for certification to software developers sharpening their skills, QuizMaster provides a modern, intuitive experience that respects your time while delivering meaningful insights into your expertise.</p>
+            <p>We believe that effective learning starts with effective assessment. That's why every feature in QuizMaster is designed to not just test knowledge, but to help users understand, improve, and grow in their chosen fields.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Core Values -->
+<section class="pb-5">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">Our Core <span class="text-gradient">Values</span></h2>
+            <p class="section-subtitle">The principles that drive everything we build</p>
+        </div>
+
+        <div class="about-mission-grid">
+            <div class="about-value-card">
+                <div class="about-value-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    <i class="bi bi-bullseye"></i>
+                </div>
+                <h4>Accuracy First</h4>
+                <p class="text-secondary small">Every question is meticulously crafted and validated to ensure reliable, meaningful assessment results.</p>
+            </div>
+            <div class="about-value-card">
+                <div class="about-value-icon" style="background: linear-gradient(135deg, #ec4899, #f43f5e);">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h4>Community Driven</h4>
+                <p class="text-secondary small">We build features based on real feedback from educators, trainers, and learners in the field.</p>
+            </div>
+            <div class="about-value-card">
+                <div class="about-value-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <h4>Continuous Innovation</h4>
+                <p class="text-secondary small">We're constantly improving our platform with new features, better analytics, and smarter tools.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Platform Stats -->
+<section class="about-stats-section">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-lg-3">
+                <div class="about-stat-card">
+                    <div class="about-stat-number">{{ total_departments }}+</div>
+                    <div class="about-stat-label">Departments</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="about-stat-card">
+                    <div class="about-stat-number">{{ total_quizzes }}+</div>
+                    <div class="about-stat-label">Quizzes Available</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="about-stat-card">
+                    <div class="about-stat-number">{{ total_questions }}+</div>
+                    <div class="about-stat-label">Questions in Pool</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="about-stat-card">
+                    <div class="about-stat-number">{{ total_attempts }}+</div>
+                    <div class="about-stat-label">Quizzes Taken</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- What Makes Us Different -->
+<section class="pb-5">
+    <div class="container">
+        <div class="about-story">
+            <h3><i class="bi bi-star-fill text-gradient me-2"></i>What Makes Us Different</h3>
+            <p><strong class="text-light">Smart Question Pools:</strong> Unlike static quizzes, QuizMaster draws from large question banks and randomizes each attempt. This means no two quiz experiences are exactly the same, ensuring genuine mastery rather than memorization.</p>
+            <p><strong class="text-light">Department Organization:</strong> Our department-based structure mirrors real-world professional disciplines, making it easy for organizations to deploy targeted assessments across teams and specializations.</p>
+            <p><strong class="text-light">Google Docs Integration:</strong> Admins can bulk-import questions directly from Google Docs, drastically reducing the time needed to build comprehensive quiz libraries. No more manual data entry for hundreds of questions.</p>
+            <p><strong class="text-light">Real-Time Insights:</strong> Both quiz takers and administrators get immediate, detailed analytics — from individual answer breakdowns to organization-wide performance trends.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-banner">
+            <h2>Want to <span class="text-gradient">Learn More?</span></h2>
+            <p>Have questions about QuizMaster or want to explore partnerships? We'd love to hear from you.</p>
+            <a href="{% url 'contact' %}" class="btn btn-gradient btn-gradient-lg">
+                <i class="bi bi-envelope-fill me-2"></i> Contact Us
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,289 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}{{ action }} Package{% endblock %}
+{% block page_title %}{{ action }} Package{% endblock %}
+{% block page_subtitle %}{% if action == 'Create' %}Create a new quiz package bundle{% else %}Update "{{ package.name }}"{% endif %}{% endblock %}
+
+{% block dash_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="glass-card-static">
+            <form method="post" id="packageForm">
+                {% csrf_token %}
+
+                <!-- Package Name -->
+                <div class="mb-3">
+                    <label for="id_name" class="form-label fw-600">Package Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label for="id_description" class="form-label fw-600">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Icon -->
+                <div class="mb-3">
+                    <label for="id_icon" class="form-label fw-600">Icon</label>
+                    {{ form.icon }}
+                </div>
+
+                <!-- Price Row -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="id_price" class="form-label fw-600">Price (৳)</label>
+                        {{ form.price }}
+                        <small class="text-muted">Set to 0 for free packages</small>
+                        {% if form.price.errors %}
+                        <div class="text-danger small mt-1">{{ form.price.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_discount_price" class="form-label fw-600">Discount Price (৳)</label>
+                        {{ form.discount_price }}
+                        <small class="text-muted">Leave empty for no discount</small>
+                        {% if form.discount_price.errors %}
+                        <div class="text-danger small mt-1">{{ form.discount_price.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Active -->
+                <div class="mb-4">
+                    <div class="form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label fw-600" for="id_is_active">Active</label>
+                        <small class="text-muted d-block">Only active packages are visible to users</small>
+                    </div>
+                </div>
+
+                <!-- Quizzes Selection (Searchable Dropdowns) -->
+                <div class="mb-4">
+                    <label class="form-label fw-600">
+                        <i class="bi bi-journal-check me-1"></i> Select Quizzes
+                    </label>
+                    <small class="text-muted d-block mb-2">Add quizzes using the searchable dropdowns below.</small>
+
+                    <!-- Hidden native select (holds the actual POST values) -->
+                    <div class="d-none">{{ form.quizzes }}</div>
+
+                    <!-- Dynamic quiz rows container -->
+                    <div id="quizRowsContainer" class="pkg-quiz-rows">
+                        <!-- Rows will be populated by JS -->
+                    </div>
+
+                    <!-- Add Quiz Button -->
+                    <button type="button" id="addQuizBtn" class="btn btn-glass btn-sm mt-2">
+                        <i class="bi bi-plus-circle-fill me-1"></i> Add Quiz
+                    </button>
+
+                    {% if form.quizzes.errors %}
+                    <div class="text-danger small mt-1">{{ form.quizzes.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Submit -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-gradient">
+                        <i class="bi bi-check-lg me-1"></i> {{ action }} Package
+                    </button>
+                    <a href="{% url 'dashboard_packages' %}" class="btn btn-glass">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const nativeSelect = document.getElementById('id_quizzes');
+    const container = document.getElementById('quizRowsContainer');
+    const addBtn = document.getElementById('addQuizBtn');
+
+    // Build quiz data from native select
+    const allQuizzes = [];
+    for (const opt of nativeSelect.options) {
+        allQuizzes.push({ id: opt.value, name: opt.textContent.trim() });
+    }
+
+    const preSelected = [];
+    for (const opt of nativeSelect.selectedOptions) {
+        preSelected.push(opt.value);
+    }
+
+    let rowCounter = 0;
+
+    // ─── Searchable Dropdown Component ─────────────────────────
+    function createRow(selectedId) {
+        rowCounter++;
+        const rowId = rowCounter;
+        const row = document.createElement('div');
+        row.className = 'pkg-quiz-row d-flex align-items-center gap-2 mb-2';
+        row.dataset.rowId = rowId;
+
+        const selectedQuiz = allQuizzes.find(q => q.id === selectedId);
+        const displayText = selectedQuiz ? selectedQuiz.name : '';
+
+        row.innerHTML = `
+            <div class="flex-grow-1 position-relative searchable-select" data-row="${rowId}">
+                <div class="search-select-display" data-value="${selectedId || ''}">
+                    <input type="text" class="form-control search-select-input"
+                           placeholder="🔍 Search or select a quiz..."
+                           value="${displayText}" autocomplete="off">
+                    <i class="bi bi-chevron-down search-select-arrow"></i>
+                </div>
+                <div class="search-select-dropdown" style="display:none;">
+                    <div class="search-select-list"></div>
+                    <div class="search-select-empty" style="display:none;">
+                        <i class="bi bi-search me-1"></i> No quizzes found
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm remove-quiz-btn" title="Remove">
+                <i class="bi bi-trash3"></i>
+            </button>
+        `;
+
+        const wrapper = row.querySelector('.searchable-select');
+        const input = row.querySelector('.search-select-input');
+        const display = row.querySelector('.search-select-display');
+        const dropdown = row.querySelector('.search-select-dropdown');
+        const listEl = row.querySelector('.search-select-list');
+        const emptyEl = row.querySelector('.search-select-empty');
+
+        function renderOptions(filter) {
+            const query = (filter || '').toLowerCase();
+            listEl.innerHTML = '';
+            let count = 0;
+
+            // Add a "clear" option
+            const clearOpt = document.createElement('div');
+            clearOpt.className = 'search-select-option search-select-clear';
+            clearOpt.textContent = '— Clear selection —';
+            clearOpt.addEventListener('click', function() {
+                display.dataset.value = '';
+                input.value = '';
+                closeDropdown();
+                syncToNativeSelect();
+            });
+            listEl.appendChild(clearOpt);
+
+            allQuizzes.forEach(q => {
+                if (query && !q.name.toLowerCase().includes(query)) return;
+                count++;
+                const opt = document.createElement('div');
+                opt.className = 'search-select-option';
+                if (q.id === display.dataset.value) opt.classList.add('selected');
+
+                // Highlight match
+                if (query) {
+                    const idx = q.name.toLowerCase().indexOf(query);
+                    opt.innerHTML = q.name.substring(0, idx) +
+                        '<mark>' + q.name.substring(idx, idx + query.length) + '</mark>' +
+                        q.name.substring(idx + query.length);
+                } else {
+                    opt.textContent = q.name;
+                }
+
+                opt.addEventListener('click', function() {
+                    display.dataset.value = q.id;
+                    input.value = q.name;
+                    closeDropdown();
+                    syncToNativeSelect();
+                });
+                listEl.appendChild(opt);
+            });
+
+            emptyEl.style.display = count === 0 ? 'block' : 'none';
+        }
+
+        function openDropdown() {
+            dropdown.style.display = 'block';
+            renderOptions(input.value === displayText ? '' : input.value);
+            wrapper.classList.add('open');
+        }
+
+        function closeDropdown() {
+            dropdown.style.display = 'none';
+            wrapper.classList.remove('open');
+            // If nothing was selected, restore the old value
+            if (!display.dataset.value && selectedQuiz) {
+                input.value = '';
+            }
+        }
+
+        input.addEventListener('focus', function() {
+            if (display.dataset.value) {
+                input.select();
+            }
+            openDropdown();
+        });
+
+        input.addEventListener('input', function() {
+            openDropdown();
+            renderOptions(input.value);
+        });
+
+        // Close on outside click
+        document.addEventListener('click', function(e) {
+            if (!wrapper.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+
+        // Remove button
+        row.querySelector('.remove-quiz-btn').addEventListener('click', function() {
+            row.remove();
+            syncToNativeSelect();
+        });
+
+        container.appendChild(row);
+    }
+
+    // ─── Sync to native select ──────────────────────────────
+    function syncToNativeSelect() {
+        for (const opt of nativeSelect.options) {
+            opt.selected = false;
+        }
+        container.querySelectorAll('.search-select-display').forEach(d => {
+            const val = d.dataset.value;
+            if (val) {
+                const opt = nativeSelect.querySelector(`option[value="${val}"]`);
+                if (opt) opt.selected = true;
+            }
+        });
+    }
+
+    // Add button
+    addBtn.addEventListener('click', function() {
+        createRow('');
+        // Focus the new input
+        const inputs = container.querySelectorAll('.search-select-input');
+        if (inputs.length) inputs[inputs.length - 1].focus();
+    });
+
+    // Sync on form submit
+    document.getElementById('packageForm').addEventListener('submit', function() {
+        syncToNativeSelect();
+    });
+
+    // Initialize
+    if (preSelected.length > 0) {
+        preSelected.forEach(id => createRow(id));
+    } else {
+        createRow('');
+    }
+})();
+</script>
+{% endblock %}

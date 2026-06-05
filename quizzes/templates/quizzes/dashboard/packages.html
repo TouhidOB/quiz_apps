@@ -1,0 +1,102 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Packages{% endblock %}
+{% block page_title %}Packages{% endblock %}
+{% block page_subtitle %}Manage quiz bundles and packages{% endblock %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="fw-700 mb-0">
+        All Packages
+        <span class="text-muted small fw-400">({{ packages|length }})</span>
+    </h5>
+    <a href="{% url 'dashboard_package_create' %}" class="btn btn-gradient btn-sm">
+        <i class="bi bi-plus-lg me-1"></i> Create Package
+    </a>
+</div>
+
+{% if packages %}
+<div class="table-responsive">
+    <table class="table dash-table align-middle">
+        <thead>
+            <tr>
+                <th>Package</th>
+                <th>Quizzes</th>
+                <th>Price</th>
+                <th>Enrolled</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for package in packages %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="dash-icon-sm">
+                            <i class="bi {{ package.icon }}"></i>
+                        </div>
+                        <div>
+                            <div class="fw-600">{{ package.name }}</div>
+                            <small class="text-muted">{{ package.description|truncatewords:8 }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="fw-600">{{ package.quiz_count }}</span>
+                </td>
+                <td>
+                    {% if package.has_discount %}
+                        <span class="text-muted text-decoration-line-through small">৳{{ package.price }}</span>
+                        <span class="fw-600 text-success">
+                            {% if package.effective_price == 0 %}Free{% else %}৳{{ package.effective_price }}{% endif %}
+                        </span>
+                    {% else %}
+                        <span class="fw-600">
+                            {% if package.price == 0 %}Free{% else %}৳{{ package.price }}{% endif %}
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="fw-600">{{ package.enrollment_count }}</span>
+                </td>
+                <td>
+                    {% if package.is_active %}
+                        <span class="badge bg-success bg-opacity-25 text-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-danger bg-opacity-25 text-danger">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <small class="text-muted">{{ package.created_at|date:"M d, Y" }}</small>
+                </td>
+                <td class="text-end">
+                    <div class="d-flex gap-1 justify-content-end">
+                        <a href="{{ package.get_absolute_url }}" class="btn btn-sm btn-outline-secondary" title="View" target="_blank">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'dashboard_package_edit' pk=package.pk %}" class="btn btn-sm btn-outline-primary" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'dashboard_package_delete' pk=package.pk %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-box-seam d-block" style="font-size: 3rem; color: var(--text-muted);"></i>
+    <h5 class="mt-3">No Packages Yet</h5>
+    <p class="text-muted">Create your first quiz package to bundle quizzes together.</p>
+    <a href="{% url 'dashboard_package_create' %}" class="btn btn-gradient">
+        <i class="bi bi-plus-lg me-1"></i> Create Package
+    </a>
+</div>
+{% endif %}
+{% endblock %}

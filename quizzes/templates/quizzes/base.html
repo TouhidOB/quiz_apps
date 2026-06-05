@@ -1,0 +1,202 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}QuizMaster — Test your knowledge across multiple departments and skill areas.{% endblock %}">
+    <title>{% block title %}QuizMaster{% endblock %}</title>
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top glass-navbar">
+        <div class="container">
+            <a class="navbar-brand fw-800 d-flex align-items-center gap-2" href="{% url 'home' %}">
+                <div class="brand-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <span class="brand-text">Quiz<span class="text-gradient">Master</span></span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">
+                            <i class="bi bi-house-fill me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'departments' %}">
+                            <i class="bi bi-collection-fill me-1"></i> Departments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'packages' %}">
+                            <i class="bi bi-box-seam-fill me-1"></i> Packages
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'leaderboard' %}">
+                            <i class="bi bi-trophy-fill me-1"></i> Leaderboard
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'profile' %}">
+                                <i class="bi bi-person-circle me-1"></i> {{ user.first_name|default:user.username }}
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link text-warning" href="{% url 'dashboard' %}">
+                                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm nav-btn ms-lg-2" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right me-1"></i> Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm nav-btn ms-lg-2" href="{% url 'login' %}">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-gradient btn-sm nav-btn ms-lg-1" href="{% url 'register' %}">
+                                <i class="bi bi-person-plus-fill me-1"></i> Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mt-5 pt-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show glass-alert" role="alert">
+            <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-triangle-fill{% elif message.tags == 'warning' %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-footer mt-5">
+        <div class="container">
+            <!-- Main Footer -->
+            <div class="footer-main">
+                <div class="row g-4">
+                    <!-- Brand Column -->
+                    <div class="col-lg-4 col-md-6">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="brand-icon brand-icon-sm">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                            </div>
+                            <span class="fw-700 fs-5">Quiz<span class="text-gradient">Master</span></span>
+                        </div>
+                        <p class="footer-brand-text">Test your knowledge, track your progress, and become the best in your field. Join thousands of professionals who trust QuizMaster.</p>
+                        <div class="footer-social">
+                            <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                            <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                            <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                            <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                            <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                        </div>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div class="col-lg-2 col-md-6 col-6">
+                        <h6 class="footer-heading">Quick Links</h6>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'home' %}"><i class="bi bi-chevron-right"></i> Home</a></li>
+                            <li><a href="{% url 'leaderboard' %}"><i class="bi bi-chevron-right"></i> Leaderboard</a></li>
+                            {% if user.is_authenticated %}
+                            <li><a href="{% url 'profile' %}"><i class="bi bi-chevron-right"></i> My Profile</a></li>
+                            {% else %}
+                            <li><a href="{% url 'register' %}"><i class="bi bi-chevron-right"></i> Register</a></li>
+                            <li><a href="{% url 'login' %}"><i class="bi bi-chevron-right"></i> Login</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <!-- Company -->
+                    <div class="col-lg-3 col-md-6 col-6">
+                        <h6 class="footer-heading">Company</h6>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'about' %}"><i class="bi bi-chevron-right"></i> About Us</a></li>
+                            <li><a href="{% url 'contact' %}"><i class="bi bi-chevron-right"></i> Contact</a></li>
+                            <li><a href="{% url 'faq' %}"><i class="bi bi-chevron-right"></i> FAQ</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Legal -->
+                    <div class="col-lg-3 col-md-6 col-6">
+                        <h6 class="footer-heading">Legal</h6>
+                        <ul class="footer-links">
+                            <li><a href="{% url 'terms' %}"><i class="bi bi-chevron-right"></i> Terms & Conditions</a></li>
+                            <li><a href="{% url 'privacy' %}"><i class="bi bi-chevron-right"></i> Privacy Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="footer-bottom">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p>&copy; 2026 QuizMaster. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <ul class="footer-bottom-links justify-content-md-end">
+                            <li><a href="{% url 'terms' %}">Terms</a></li>
+                            <li><a href="{% url 'privacy' %}">Privacy</a></li>
+                            <li><a href="{% url 'contact' %}">Support</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{% static 'js/quiz.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+    <script src="http://127.0.0.1:8000/widget/quiz-master/chat.js"></script>
+</body>
+</html>

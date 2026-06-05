@@ -1,0 +1,23 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Delete Department{% endblock %}
+{% block page_title %}Delete Department{% endblock %}
+{% block page_subtitle %}This action cannot be undone{% endblock %}
+
+{% block dash_content %}
+<div class="dash-confirm-card">
+    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+    <h4 class="fw-700 mt-3">Delete "{{ department.name }}"?</h4>
+    <p class="text-muted">This will permanently delete this department and all its quizzes, questions, and related data.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex gap-2 justify-content-center mt-4">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash3 me-2"></i> Yes, Delete
+            </button>
+            <a href="{% url 'dashboard_departments' %}" class="btn btn-glass">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,216 @@
+{% extends "quizzes/base.html" %}
+{% load static %}
+
+{% block title %}FAQ — QuizMaster{% endblock %}
+{% block meta_description %}Frequently asked questions about QuizMaster. Find answers about accounts, quizzes, scoring, and technical support.{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1 class="fade-in-up">Frequently Asked <span class="text-gradient">Questions</span></h1>
+        <p class="fade-in-up fade-in-up-delay-1">Find quick answers to common questions about QuizMaster.</p>
+    </div>
+</section>
+
+<!-- FAQ Content -->
+<section class="pb-5">
+    <div class="faq-content">
+
+        <!-- Account & Registration -->
+        <div class="faq-category-title fade-in-up">
+            <i class="bi bi-person-circle"></i> Account & Registration
+        </div>
+        <div class="accordion faq-accordion fade-in-up" id="faqAccount">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        How do I create a QuizMaster account?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccount">
+                    <div class="accordion-body">
+                        Creating an account is free and easy! Click the <strong>"Register"</strong> button in the top navigation bar, fill in your name, email, username, and password, then click submit. You'll be logged in automatically and ready to start taking quizzes.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        I forgot my password. How can I reset it?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccount">
+                    <div class="accordion-body">
+                        Currently, password reset can be handled by contacting our support team at <strong>support@quizmaster.com</strong>. We're working on adding a self-service password reset feature in an upcoming update.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                        Can I change my username or email after registering?
+                    </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccount">
+                    <div class="accordion-body">
+                        At this time, username changes require assistance from our support team. You can update your profile information by contacting us directly. We're working on adding self-service profile editing in a future update.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quizzes -->
+        <div class="faq-category-title fade-in-up">
+            <i class="bi bi-journal-text"></i> Taking Quizzes
+        </div>
+        <div class="accordion faq-accordion fade-in-up" id="faqQuizzes">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                        How do quizzes work on QuizMaster?
+                    </button>
+                </h2>
+                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqQuizzes">
+                    <div class="accordion-body">
+                        Each quiz has a set number of questions, a time limit, and a passing score. Browse departments, select a quiz, review its prerequisites, and click <strong>"Start Quiz"</strong>. Answer all questions within the time limit and submit. You'll see your results immediately — including which answers were correct and which were wrong.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                        Can I retake a quiz after completing it?
+                    </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqQuizzes">
+                    <div class="accordion-body">
+                        It depends on the quiz settings. Some quizzes allow unlimited retakes, while others may restrict you to a single attempt. Check the quiz detail page — it will clearly indicate whether retakes are allowed.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                        What happens if the timer runs out?
+                    </button>
+                </h2>
+                <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqQuizzes">
+                    <div class="accordion-body">
+                        When the timer expires, your quiz is <strong>automatically submitted</strong> with whatever answers you've selected so far. Any unanswered questions will be marked as incorrect. We recommend keeping an eye on the timer bar at the top of the quiz page.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                        Are the questions randomized for each attempt?
+                    </button>
+                </h2>
+                <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqQuizzes">
+                    <div class="accordion-body">
+                        Yes! Questions are drawn from a larger pool and randomized for each attempt. The answer choices within each question are also shuffled. This ensures fair assessment and prevents memorization of answer positions.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scoring & Results -->
+        <div class="faq-category-title fade-in-up">
+            <i class="bi bi-bar-chart-fill"></i> Scoring & Results
+        </div>
+        <div class="accordion faq-accordion fade-in-up" id="faqScoring">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
+                        How is my score calculated?
+                    </button>
+                </h2>
+                <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqScoring">
+                    <div class="accordion-body">
+                        Each correct answer earns the number of marks defined for that quiz (shown on the quiz detail page). Your total score is the sum of marks for all correct answers. The pass/fail status is determined by comparing your score against the quiz's pass mark threshold.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq9">
+                        Where can I see my quiz history?
+                    </button>
+                </h2>
+                <div id="faq9" class="accordion-collapse collapse" data-bs-parent="#faqScoring">
+                    <div class="accordion-body">
+                        Visit your <strong>Profile</strong> page (click your name in the navigation bar) to see all your past quiz attempts, scores, pass/fail status, and completion dates. You can also review individual quiz results with detailed answer breakdowns.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq10">
+                        How does the leaderboard work?
+                    </button>
+                </h2>
+                <div id="faq10" class="accordion-collapse collapse" data-bs-parent="#faqScoring">
+                    <div class="accordion-body">
+                        The leaderboard displays the top-performing quiz attempts across the platform. Rankings are based on scores, with ties broken by completion time. Only passed attempts appear on the leaderboard. Keep taking quizzes and improving your scores to climb the ranks!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Support -->
+        <div class="faq-category-title fade-in-up">
+            <i class="bi bi-gear-fill"></i> Technical & Support
+        </div>
+        <div class="accordion faq-accordion fade-in-up" id="faqTechnical">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq11">
+                        What browsers are supported?
+                    </button>
+                </h2>
+                <div id="faq11" class="accordion-collapse collapse" data-bs-parent="#faqTechnical">
+                    <div class="accordion-body">
+                        QuizMaster works best on modern browsers including <strong>Google Chrome, Mozilla Firefox, Microsoft Edge, and Safari</strong>. We recommend using the latest version of your browser for the best experience. JavaScript must be enabled for the quiz timer and interactive features to work properly.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq12">
+                        Can I use QuizMaster on my phone or tablet?
+                    </button>
+                </h2>
+                <div id="faq12" class="accordion-collapse collapse" data-bs-parent="#faqTechnical">
+                    <div class="accordion-body">
+                        Absolutely! QuizMaster is fully responsive and works on smartphones and tablets. The interface automatically adapts to your screen size. However, for timed quizzes, we recommend a stable internet connection to ensure your quiz submission goes through before time expires.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq13">
+                        My quiz didn't submit properly. What should I do?
+                    </button>
+                </h2>
+                <div id="faq13" class="accordion-collapse collapse" data-bs-parent="#faqTechnical">
+                    <div class="accordion-body">
+                        If you experience a submission issue (e.g., page didn't load, network error), please contact our support team at <strong>support@quizmaster.com</strong> with your username and the quiz name. If the quiz allows retakes, you can try again. Our team can investigate and assist with any technical issues.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Still Have Questions? -->
+        <div class="text-center mt-5 fade-in-up">
+            <div class="cta-banner">
+                <h2>Still Have <span class="text-gradient">Questions?</span></h2>
+                <p>Can't find what you're looking for? Our support team is here to help.</p>
+                <a href="{% url 'contact' %}" class="btn btn-gradient btn-gradient-lg">
+                    <i class="bi bi-envelope-fill me-2"></i> Contact Support
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

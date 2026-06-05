@@ -1,0 +1,278 @@
+{% extends "quizzes/base.html" %}
+{% load static %}
+
+{% block title %}QuizMaster — Test Your Knowledge{% endblock %}
+{% block meta_description %}QuizMaster — Take dynamic quizzes across departments like Civil Engineering, Software Engineering, and more. Track your progress and compete on the leaderboard.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="hero-title fade-in-up">
+            Master Any Field with<br>
+            <span class="text-gradient">Interactive Quizzes</span>
+        </h1>
+        <p class="hero-subtitle fade-in-up fade-in-up-delay-1">
+            Challenge yourself with expertly crafted quizzes across multiple departments.
+            Track your progress, compete on the leaderboard, and prove your expertise.
+        </p>
+
+        <!-- Stats -->
+        <div class="stats-row fade-in-up fade-in-up-delay-2">
+            <div class="stat-chip">
+                <i class="bi bi-collection-fill text-info"></i>
+                <span class="stat-value">{{ total_departments }}</span> Departments
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-journal-text text-warning"></i>
+                <span class="stat-value">{{ total_quizzes }}</span> Quizzes
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-lightning-fill text-danger"></i>
+                <span class="stat-value">{{ total_attempts }}</span> Attempts
+            </div>
+        </div>
+
+        {% if not user.is_authenticated %}
+        <div class="fade-in-up fade-in-up-delay-3">
+            <a href="{% url 'register' %}" class="btn btn-gradient btn-gradient-lg me-2">
+                <i class="bi bi-rocket-takeoff-fill me-2"></i> Get Started Free
+            </a>
+            <a href="#departments" class="btn btn-glass btn-gradient-lg">
+                <i class="bi bi-search me-2"></i> Browse Quizzes
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">Why Choose <span class="text-gradient">QuizMaster</span></h2>
+            <p class="section-subtitle">Everything you need to test, track, and improve your knowledge</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon-wrap gradient-1">
+                        <i class="bi bi-stopwatch-fill"></i>
+                    </div>
+                    <h4>Timed Quizzes</h4>
+                    <p>Challenge yourself against the clock with configurable time limits that test both knowledge and speed.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon-wrap gradient-2">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <h4>Instant Results</h4>
+                    <p>Get detailed breakdowns of your performance immediately after submitting, with correct answers highlighted.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon-wrap gradient-3">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <h4>Leaderboards</h4>
+                    <p>Compete with peers and climb the global rankings. See how you stack up against the best performers.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon-wrap gradient-4">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h4>Secure & Fair</h4>
+                    <p>Randomized question pools and shuffled answer choices ensure every attempt is unique and fair.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon-wrap gradient-5">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                    </div>
+                    <h4>Multi-Department</h4>
+                    <p>Quizzes organized by departments — from Civil Engineering to Computer Science and beyond.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card">
+                    <div class="feature-icon-wrap gradient-6">
+                        <i class="bi bi-phone-fill"></i>
+                    </div>
+                    <h4>Mobile Ready</h4>
+                    <p>Take quizzes anywhere, on any device. Our responsive design adapts seamlessly to all screen sizes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">How It <span class="text-gradient">Works</span></h2>
+            <p class="section-subtitle">Get started in just a few simple steps</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="d-none d-md-block step-connector"></div>
+                    <h5>Create Account</h5>
+                    <p>Sign up for free in seconds. No credit card required.</p>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="d-none d-md-block step-connector"></div>
+                    <h5>Pick a Quiz</h5>
+                    <p>Browse departments and choose the quiz that matches your field.</p>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h5>Test & Improve</h5>
+                    <p>Answer questions, get instant feedback, and track your progress.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Departments -->
+<section id="departments" class="pb-5">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">Explore <span class="text-gradient">Departments</span></h2>
+            <p class="section-subtitle">Choose your area of expertise and start testing your knowledge</p>
+        </div>
+
+        <div class="row g-4">
+            {% for department in departments %}
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ department.get_absolute_url }}" class="dept-card glass-card d-block">
+                    <div class="dept-icon">
+                        <i class="bi {{ department.icon }}"></i>
+                    </div>
+                    <h3 class="dept-name">{{ department.name }}</h3>
+                    <p class="dept-desc">{{ department.description|truncatewords:20 }}</p>
+                    <div class="dept-quiz-count">
+                        <i class="bi bi-journal-check"></i>
+                        {{ department.quiz_count }} Quiz{{ department.quiz_count|pluralize:"zes" }} Available
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-inbox d-block"></i>
+                    <h5>No Departments Yet</h5>
+                    <p>Departments will appear here once an admin creates them.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="testimonials-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">What Our Users <span class="text-gradient">Say</span></h2>
+            <p class="section-subtitle">Trusted by professionals and students across the globe</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">&ldquo;</div>
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-text">QuizMaster completely transformed how our team prepares for certification exams. The timed quizzes and instant feedback are incredibly effective.</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar avatar-1">SR</div>
+                        <div>
+                            <div class="testimonial-name">Sarah Rahman</div>
+                            <div class="testimonial-role">Civil Engineer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">&ldquo;</div>
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-text">The department-based organization is perfect. I can focus on my specific area and track my improvement over time. Highly recommended!</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar avatar-2">JK</div>
+                        <div>
+                            <div class="testimonial-name">James Kim</div>
+                            <div class="testimonial-role">Software Developer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-quote">&ldquo;</div>
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                    </div>
+                    <p class="testimonial-text">As a training lead, I love how easy it is to manage quizzes through the admin dashboard. Importing questions from Google Docs saves hours of work.</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar avatar-3">MA</div>
+                        <div>
+                            <div class="testimonial-name">Mika Abe</div>
+                            <div class="testimonial-role">Training Manager</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+{% if not user.is_authenticated %}
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-banner">
+            <h2>Ready to <span class="text-gradient">Test Your Knowledge?</span></h2>
+            <p>Join thousands of professionals who are sharpening their skills with QuizMaster every day.</p>
+            <a href="{% url 'register' %}" class="btn btn-gradient btn-gradient-lg me-2">
+                <i class="bi bi-rocket-takeoff-fill me-2"></i> Create Free Account
+            </a>
+            <a href="{% url 'login' %}" class="btn btn-glass btn-gradient-lg">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

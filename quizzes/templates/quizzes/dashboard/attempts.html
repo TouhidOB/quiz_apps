@@ -1,0 +1,61 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Quiz Attempts{% endblock %}
+{% block page_title %}Quiz Attempts{% endblock %}
+{% block page_subtitle %}View all user quiz attempts and scores{% endblock %}
+
+{% with active_page='attempts' %}{% endwith %}
+
+{% block dash_content %}
+<div class="dash-card">
+    <div class="dash-card-body p-0">
+        {% if attempts %}
+        <div class="table-responsive">
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Quiz</th>
+                        <th>Department</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in attempts %}
+                    <tr>
+                        <td>
+                            <div class="fw-600">{{ attempt.user.get_full_name|default:attempt.user.username }}</div>
+                            <small class="text-muted">@{{ attempt.user.username }}</small>
+                        </td>
+                        <td class="fw-500">{{ attempt.quiz.name }}</td>
+                        <td><small class="text-muted">{{ attempt.quiz.department.name }}</small></td>
+                        <td class="fw-700">{{ attempt.score }}/{{ attempt.total_marks }}</td>
+                        <td>
+                            <span class="fw-600 {% if attempt.percentage >= 80 %}text-success{% elif attempt.percentage >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ attempt.percentage }}%
+                            </span>
+                        </td>
+                        <td>
+                            <span class="quiz-badge {% if attempt.passed %}badge-pass{% else %}badge-fail{% endif %}">
+                                {% if attempt.passed %}Passed{% else %}Failed{% endif %}
+                            </span>
+                        </td>
+                        <td><small class="text-muted">{{ attempt.started_at|date:"M d, Y H:i" }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="dash-empty">
+            <i class="bi bi-clock-history d-block"></i>
+            <h5>No Attempts Yet</h5>
+            <p>Quiz attempts will appear here once users start taking quizzes.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

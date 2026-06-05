@@ -1,0 +1,207 @@
+{% extends "quizzes/base.html" %}
+
+{% block title %}Results: {{ quiz.name }} — QuizMaster{% endblock %}
+{% block meta_description %}Quiz results for {{ quiz.name }} — scored {{ attempt.percentage }}% on QuizMaster.{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Result Hero -->
+    <div class="result-hero">
+        <div class="result-score-circle {% if attempt.passed %}passed{% else %}failed{% endif %} fade-in-up">
+            <div class="result-percentage">{{ attempt.percentage }}%</div>
+            <div class="result-label">{{ attempt.score }}/{{ attempt.total_marks }}</div>
+        </div>
+
+        <!-- Dynamic Tier Label -->
+        <div class="result-tier fade-in-up fade-in-up-delay-1" style="margin-bottom: 8px;">
+            {% if attempt.percentage >= 90 %}
+                <span class="tier-badge tier-expert">
+                    <i class="bi bi-gem me-1"></i> Expert
+                </span>
+            {% elif attempt.percentage >= 70 %}
+                <span class="tier-badge tier-advanced">
+                    <i class="bi bi-star-fill me-1"></i> Advanced
+                </span>
+            {% elif attempt.percentage >= 50 %}
+                <span class="tier-badge tier-intermediate">
+                    <i class="bi bi-lightning-fill me-1"></i> Intermediate
+                </span>
+            {% else %}
+                <span class="tier-badge tier-beginner">
+                    <i class="bi bi-mortarboard-fill me-1"></i> Beginner
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="result-status {% if attempt.passed %}passed{% else %}failed{% endif %} fade-in-up fade-in-up-delay-1">
+            {% if attempt.passed %}
+                <i class="bi bi-trophy-fill me-2"></i>Congratulations! You Passed!
+            {% else %}
+                <i class="bi bi-emoji-frown me-2"></i>Better Luck Next Time
+            {% endif %}
+        </div>
+
+        <p class="text-muted fade-in-up fade-in-up-delay-2">
+            {{ quiz.name }} · Required: {{ quiz.pass_mark }} marks · You scored: {{ attempt.score }} marks
+        </p>
+
+        <!-- Result Stats -->
+        <div class="stats-row fade-in-up fade-in-up-delay-3">
+            <div class="stat-chip">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span class="stat-value">{{ attempt.correct_count }}</span> Correct
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-x-circle-fill text-danger"></i>
+                <span class="stat-value">{{ attempt.incorrect_count }}</span> Incorrect
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-dash-circle-fill" style="color: var(--text-muted);"></i>
+                <span class="stat-value">{{ unanswered_count }}</span> Skipped
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-question-circle-fill text-info"></i>
+                <span class="stat-value">{{ total_shown }}</span> Questions
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-clock-fill text-info"></i>
+                Taken {{ attempt.started_at|timesince }} ago
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+            <a href="{% url 'quiz_detail' slug=quiz.slug %}" class="btn btn-glass">
+                <i class="bi bi-arrow-left me-2"></i> Back to Quiz
+            </a>
+            {% if quiz.allow_retake %}
+            <a href="{% url 'take_quiz' slug=quiz.slug %}" class="btn btn-gradient">
+                <i class="bi bi-arrow-repeat me-2"></i> Retake Quiz
+            </a>
+            {% endif %}
+            {% if attempt.passed %}
+            <a href="{% url 'download_certificate' attempt_id=attempt.id %}" class="btn btn-glass" style="border-color: rgba(234,179,8,0.4); color: #eab308;">
+                <i class="bi bi-award-fill me-2"></i> Download Certificate
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Social Sharing -->
+        <div class="social-share-row fade-in-up fade-in-up-delay-3 mt-4">
+            <span class="text-muted small me-2"><i class="bi bi-share-fill me-1"></i>Share your result:</span>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}&quote=I scored {{ attempt.percentage }}%25 on {{ quiz.name }} at QuizMaster!"
+               target="_blank" rel="noopener" class="share-btn share-facebook" title="Share on Facebook">
+                <i class="bi bi-facebook"></i>
+            </a>
+            <a href="https://twitter.com/intent/tweet?text=I scored {{ attempt.percentage }}%25 on {{ quiz.name }} at QuizMaster! 🎯&url={{ request.build_absolute_uri }}"
+               target="_blank" rel="noopener" class="share-btn share-twitter" title="Share on X (Twitter)">
+                <i class="bi bi-twitter-x"></i>
+            </a>
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}"
+               target="_blank" rel="noopener" class="share-btn share-linkedin" title="Share on LinkedIn">
+                <i class="bi bi-linkedin"></i>
+            </a>
+            <button class="share-btn share-copy" title="Copy link" onclick="navigator.clipboard.writeText('{{ request.build_absolute_uri }}').then(()=>{this.innerHTML='<i class=\'bi bi-check-lg\'></i>';setTimeout(()=>{this.innerHTML='<i class=\'bi bi-link-45deg\'></i>';},1500)})">
+                <i class="bi bi-link-45deg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Detailed Review -->
+    <div class="quiz-container mb-5">
+        <h3 class="fw-700 mb-3">
+            <i class="bi bi-list-check me-2 text-gradient"></i>Detailed Review
+        </h3>
+
+        {% for item in results %}
+        <div class="review-card {% if item.is_correct %}correct{% elif item.selected %}incorrect{% else %}unanswered{% endif %}">
+            <div class="d-flex align-items-start mb-3">
+                <span class="question-number">{{ forloop.counter }}</span>
+                <div class="flex-grow-1">
+                    <div class="question-text mb-0">{{ item.question.text }}</div>
+                    <div class="mt-1">
+                        {% if item.is_correct %}
+                            <span class="quiz-badge badge-pass"><i class="bi bi-check-lg me-1"></i>Correct</span>
+                        {% elif item.selected %}
+                            <span class="quiz-badge badge-fail"><i class="bi bi-x-lg me-1"></i>Incorrect</span>
+                        {% else %}
+                            <span class="quiz-badge" style="background: rgba(100,116,139,0.15); color: var(--text-muted); border: 1px solid rgba(100,116,139,0.3);">
+                                <i class="bi bi-dash-lg me-1"></i>Not Answered
+                            </span>
+                        {% endif %}
+
+                        {% if item.selected %}
+                            <span class="text-muted small ms-2">
+                                <i class="bi bi-cursor-fill me-1"></i>Your answer: {{ item.selected.text }}
+                            </span>
+                        {% endif %}
+
+                        <!-- Bookmark Button -->
+                        {% if user.is_authenticated %}
+                        <button class="btn btn-sm bookmark-btn ms-2 {% if item.question.id in bookmarked_ids %}bookmarked{% endif %}"
+                                data-question-id="{{ item.question.id }}"
+                                title="{% if item.question.id in bookmarked_ids %}Remove bookmark{% else %}Bookmark this question{% endif %}"
+                                onclick="toggleBookmark(this, {{ item.question.id }})">
+                            <i class="bi {% if item.question.id in bookmarked_ids %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="ps-5">
+                {% for choice in item.choices %}
+                <div class="review-choice
+                    {% if choice.is_correct %}is-correct{% elif choice == item.selected and not choice.is_correct %}is-selected is-wrong{% else %}is-neutral{% endif %}">
+                    {% if choice.is_correct %}
+                        <i class="bi bi-check-circle-fill"></i>
+                    {% elif choice == item.selected and not choice.is_correct %}
+                        <i class="bi bi-x-circle-fill"></i>
+                    {% else %}
+                        <i class="bi bi-circle" style="opacity: 0.3;"></i>
+                    {% endif %}
+                    {{ choice.text }}
+                </div>
+                {% endfor %}
+
+                <!-- Explanation -->
+                {% if item.question.explanation %}
+                <div class="explanation-box mt-2">
+                    <div class="explanation-label">
+                        <i class="bi bi-lightbulb-fill me-1"></i> Explanation
+                    </div>
+                    <div class="explanation-text">{{ item.question.explanation|linebreaksbr }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleBookmark(btn, questionId) {
+    $.ajax({
+        url: '{% url "toggle_bookmark" %}',
+        type: 'POST',
+        data: {
+            'question_id': questionId,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        success: function(data) {
+            if (data.bookmarked) {
+                $(btn).addClass('bookmarked');
+                $(btn).find('i').removeClass('bi-bookmark').addClass('bi-bookmark-fill');
+                $(btn).attr('title', 'Remove bookmark');
+            } else {
+                $(btn).removeClass('bookmarked');
+                $(btn).find('i').removeClass('bi-bookmark-fill').addClass('bi-bookmark');
+                $(btn).attr('title', 'Bookmark this question');
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

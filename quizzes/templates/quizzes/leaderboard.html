@@ -1,0 +1,79 @@
+{% extends "quizzes/base.html" %}
+
+{% block title %}Leaderboard — QuizMaster{% endblock %}
+{% block meta_description %}See the top scorers and quiz champions on QuizMaster.{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section-header text-center" style="padding-top: 2rem;">
+        <h1 class="section-title">
+            <i class="bi bi-trophy-fill me-2 text-warning"></i>
+            <span class="text-gradient">Leaderboard</span>
+        </h1>
+        <p class="section-subtitle">Top performers across all quizzes</p>
+    </div>
+
+    {% if top_attempts %}
+    <div class="glass-card-static mb-5" style="overflow-x: auto;">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th style="width: 60px;">Rank</th>
+                    <th>User</th>
+                    <th>Quiz</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in top_attempts %}
+                <tr>
+                    <td>
+                        <span class="rank-badge {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% else %}rank-other{% endif %}">
+                            {% if forloop.counter <= 3 %}
+                                <i class="bi bi-trophy-fill"></i>
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="fw-600">
+                            {{ attempt.user.first_name }} {{ attempt.user.last_name }}
+                        </div>
+                        <small class="text-muted">@{{ attempt.user.username }}</small>
+                    </td>
+                    <td>
+                        <a href="{% url 'quiz_detail' slug=attempt.quiz.slug %}" class="text-decoration-none" style="color: var(--accent-tertiary);">
+                            {{ attempt.quiz.name }}
+                        </a>
+                        <br>
+                        <small class="text-muted">{{ attempt.quiz.department.name }}</small>
+                    </td>
+                    <td class="fw-700">{{ attempt.score }}/{{ attempt.total_marks }}</td>
+                    <td>
+                        <span class="fw-600 {% if attempt.percentage >= 80 %}text-success{% elif attempt.percentage >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ attempt.percentage }}%
+                        </span>
+                    </td>
+                    <td>
+                        <small class="text-muted">{{ attempt.completed_at|date:"M d, Y" }}</small>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-trophy d-block"></i>
+        <h5>No Results Yet</h5>
+        <p>Be the first to pass a quiz and claim the top spot!</p>
+        <a href="{% url 'home' %}" class="btn btn-gradient mt-3">
+            <i class="bi bi-rocket-takeoff-fill me-2"></i> Browse Quizzes
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "quizzes/base.html" %}
+
+{% block title %}Login — QuizMaster{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-container">
+        <div class="auth-card fade-in-up">
+            <div class="text-center mb-4">
+                <div class="brand-icon mx-auto mb-3" style="width: 52px; height: 52px; font-size: 1.4rem;">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to continue your learning journey</p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert alert-danger glass-alert mb-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Invalid username or password. Please try again.
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="id_username" class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); color: var(--text-muted);">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input type="text" name="username" id="id_username" class="form-control" placeholder="Enter your username" required autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="id_password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); color: var(--text-muted);">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input type="password" name="password" id="id_password" class="form-control" placeholder="Enter your password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-gradient w-100 mb-3">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                </button>
+
+                <p class="text-center text-muted small mb-0">
+                    Don't have an account?
+                    <a href="{% url 'register' %}" class="text-decoration-none" style="color: var(--accent-tertiary);">Create one</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

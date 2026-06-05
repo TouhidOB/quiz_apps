@@ -1,0 +1,164 @@
+{% extends "quizzes/base.html" %}
+{% load static %}
+
+{% block title %}All Departments — QuizMaster{% endblock %}
+{% block meta_description %}Browse all quiz departments on QuizMaster. Explore subjects from Civil Engineering to Computer Science and find the perfect quiz for your expertise.{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1 class="fade-in-up">Quiz <span class="text-gradient">Departments</span></h1>
+        <p class="fade-in-up fade-in-up-delay-1">Explore all available departments and find the perfect quiz to challenge your expertise.</p>
+
+        <!-- Quick Stats -->
+        <div class="stats-row fade-in-up fade-in-up-delay-2 mt-4">
+            <div class="stat-chip">
+                <i class="bi bi-collection-fill text-info"></i>
+                <span class="stat-value">{{ total_departments }}</span> Departments
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-journal-text text-warning"></i>
+                <span class="stat-value">{{ total_quizzes }}</span> Quizzes
+            </div>
+            <div class="stat-chip">
+                <i class="bi bi-patch-question-fill text-danger"></i>
+                <span class="stat-value">{{ total_questions }}</span> Questions
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search / Filter Bar -->
+<section class="pb-4">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="dept-search-box fade-in-up">
+                    <i class="bi bi-search dept-search-icon"></i>
+                    <input type="text" id="deptSearchInput" class="form-control dept-search-input" placeholder="Search departments..." autocomplete="off">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Departments Grid -->
+<section class="pb-5">
+    <div class="container">
+        <div class="row g-4" id="deptGrid">
+            {% for department in departments %}
+            <div class="col-md-6 col-lg-4 dept-grid-item" data-name="{{ department.name|lower }}">
+                <a href="{{ department.get_absolute_url }}" class="dept-page-card d-block">
+                    <div class="dept-page-card-inner">
+                        <!-- Header gradient strip -->
+                        <div class="dept-page-card-header">
+                            <div class="dept-page-icon">
+                                <i class="bi {{ department.icon }}"></i>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="dept-page-card-body">
+                            <h3 class="dept-page-name">{{ department.name }}</h3>
+                            <p class="dept-page-desc">{{ department.description|truncatewords:25 }}</p>
+
+                            <!-- Stats Row -->
+                            <div class="dept-page-stats">
+                                <div class="dept-page-stat">
+                                    <i class="bi bi-journal-check"></i>
+                                    <span>{{ department.quiz_count }} Quiz{{ department.quiz_count|pluralize:"zes" }}</span>
+                                </div>
+                                <div class="dept-page-stat">
+                                    <i class="bi bi-patch-question"></i>
+                                    <span>{{ department.question_count }} Questions</span>
+                                </div>
+                                {% if department.attempt_count > 0 %}
+                                <div class="dept-page-stat">
+                                    <i class="bi bi-lightning-charge"></i>
+                                    <span>{{ department.attempt_count }} Attempts</span>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Browse Arrow -->
+                            <div class="dept-page-action">
+                                <span class="dept-page-action-text">Browse Quizzes</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-inbox d-block"></i>
+                    <h5>No Departments Yet</h5>
+                    <p>Departments will appear here once an admin creates them.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- No Results State (hidden by default) -->
+        <div class="empty-state d-none" id="deptNoResults">
+            <i class="bi bi-search d-block"></i>
+            <h5>No Departments Found</h5>
+            <p>No departments match your search. Try a different keyword.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+{% if not user.is_authenticated %}
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-banner">
+            <h2>Ready to <span class="text-gradient">Start Learning?</span></h2>
+            <p>Create a free account and start taking quizzes across all departments today.</p>
+            <a href="{% url 'register' %}" class="btn btn-gradient btn-gradient-lg">
+                <i class="bi bi-rocket-takeoff-fill me-2"></i> Get Started Free
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Live search filter for departments
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('deptSearchInput');
+    const grid = document.getElementById('deptGrid');
+    const items = document.querySelectorAll('.dept-grid-item');
+    const noResults = document.getElementById('deptNoResults');
+
+    if (input) {
+        input.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            let visible = 0;
+
+            items.forEach(function(item) {
+                const name = item.getAttribute('data-name') || '';
+                if (name.includes(query)) {
+                    item.style.display = '';
+                    visible++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (visible === 0 && query.length > 0) {
+                noResults.classList.remove('d-none');
+                grid.classList.add('d-none');
+            } else {
+                noResults.classList.add('d-none');
+                grid.classList.remove('d-none');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

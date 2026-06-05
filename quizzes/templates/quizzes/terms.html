@@ -1,0 +1,99 @@
+{% extends "quizzes/base.html" %}
+{% load static %}
+
+{% block title %}Terms & Conditions — QuizMaster{% endblock %}
+{% block meta_description %}Read QuizMaster's Terms and Conditions governing the use of our quiz platform, user accounts, and services.{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1 class="fade-in-up">Terms & <span class="text-gradient">Conditions</span></h1>
+        <p class="fade-in-up fade-in-up-delay-1">Please read these terms carefully before using QuizMaster.</p>
+    </div>
+</section>
+
+<!-- Terms Content -->
+<section class="pb-5">
+    <div class="legal-content">
+        <div class="legal-card fade-in-up">
+            <p class="legal-update">Last updated: April 5, 2026</p>
+
+            <h2>1. Acceptance of Terms</h2>
+            <p>By accessing or using QuizMaster ("the Platform"), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you must not use this Platform.</p>
+            <p>These terms apply to all users, including without limitation users who are browsers, quiz takers, administrators, and contributors of content.</p>
+
+            <h2>2. User Accounts</h2>
+            <p>To access certain features of the Platform, you must register for an account. When registering, you agree to:</p>
+            <ul>
+                <li>Provide accurate, current, and complete information during registration</li>
+                <li>Maintain and promptly update your account information to keep it accurate and complete</li>
+                <li>Maintain the security and confidentiality of your login credentials</li>
+                <li>Accept all responsibility for activities that occur under your account</li>
+                <li>Notify us immediately of any unauthorized use of your account</li>
+            </ul>
+
+            <h2>3. Acceptable Use</h2>
+            <p>You agree not to use the Platform to:</p>
+            <ul>
+                <li>Violate any applicable local, state, national, or international law or regulation</li>
+                <li>Share quiz answers, questions, or content outside the Platform without authorization</li>
+                <li>Attempt to gain unauthorized access to other users' accounts or Platform systems</li>
+                <li>Use automated tools, bots, or scripts to interact with the Platform</li>
+                <li>Submit false or misleading information during quiz attempts</li>
+                <li>Engage in any activity that interferes with or disrupts the Platform's services</li>
+            </ul>
+
+            <h2>4. Quiz Content & Intellectual Property</h2>
+            <p>All quiz content, including questions, answers, explanations, and related materials, is the intellectual property of QuizMaster or its content contributors. You may not:</p>
+            <ul>
+                <li>Copy, reproduce, distribute, or publicly display any quiz content</li>
+                <li>Create derivative works based on quiz content</li>
+                <li>Use quiz content for commercial purposes without written permission</li>
+                <li>Remove any copyright or proprietary notices from Platform materials</li>
+            </ul>
+
+            <h2>5. Quiz Scores & Results</h2>
+            <p>Quiz scores are calculated automatically based on correct answers submitted within the allotted time. While we strive for accuracy, QuizMaster:</p>
+            <ul>
+                <li>Does not guarantee the accuracy of any specific quiz question or answer</li>
+                <li>Reserves the right to adjust scores if system errors are identified</li>
+                <li>Does not issue official certifications or academic credentials based on quiz results</li>
+                <li>May modify quiz parameters, scoring rules, or leaderboard rankings at any time</li>
+            </ul>
+
+            <h2>6. Privacy & Data</h2>
+            <p>Your use of the Platform is also governed by our <a href="{% url 'privacy' %}" class="text-gradient">Privacy Policy</a>, which is incorporated into these terms by reference. By using the Platform, you consent to the collection and use of information as described in our Privacy Policy.</p>
+
+            <h2>7. Account Termination</h2>
+            <p>We reserve the right to suspend or terminate your account at our sole discretion, without notice, for conduct that we determine violates these Terms of Conditions or is harmful to other users, us, or third parties, or for any other reason.</p>
+
+            <h2>8. Disclaimers</h2>
+            <p>The Platform is provided "as is" and "as available" without warranties of any kind, either express or implied. We do not warrant that:</p>
+            <ul>
+                <li>The Platform will be uninterrupted, timely, secure, or error-free</li>
+                <li>The results obtained from using the Platform will be accurate or reliable</li>
+                <li>Any errors in the Platform will be corrected</li>
+            </ul>
+
+            <h2>9. Limitation of Liability</h2>
+            <p>In no event shall QuizMaster, its directors, employees, partners, agents, or affiliates be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, or goodwill, arising from your use of or inability to use the Platform.</p>
+
+            <h2>10. Changes to Terms</h2>
+            <p>We reserve the right to modify these Terms at any time. Changes will be effective immediately upon posting to the Platform. Your continued use of the Platform after any changes constitutes acceptance of the new Terms. We will notify registered users of significant changes via email or Platform notification.</p>
+
+            <h2>11. Contact Information</h2>
+            <p>If you have any questions about these Terms, please contact us at:</p>
+            <ul>
+                <li>Email: <strong>legal@quizmaster.com</strong></li>
+                <li>Address: 123 Innovation Drive, Suite 400, San Francisco, CA 94105</li>
+            </ul>
+            <p class="mt-4">
+                <a href="{% url 'contact' %}" class="btn btn-glass">
+                    <i class="bi bi-envelope-fill me-2"></i> Contact Us
+                </a>
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "quizzes/base.html" %}
+
+{% block title %}My Profile — QuizMaster{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 2rem;">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {{ user.first_name.0 }}{{ user.last_name.0 }}
+        </div>
+        <div>
+            <h1 class="section-title mb-0">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="text-muted mb-0">@{{ user.username }} · {{ user.email }}</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="detail-stat">
+                <div class="detail-stat-value">{{ total_attempts }}</div>
+                <div class="detail-stat-label">Total Attempts</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="detail-stat">
+                <div class="detail-stat-value text-success">{{ passed_count }}</div>
+                <div class="detail-stat-label">Passed</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="detail-stat">
+                <div class="detail-stat-value text-danger">{{ failed_count }}</div>
+                <div class="detail-stat-label">Failed</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="detail-stat">
+                <div class="detail-stat-value">{{ pass_rate }}%</div>
+                <div class="detail-stat-label">Pass Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attempt History -->
+    <div class="glass-card-static">
+        <h3 class="fw-700 mb-3">
+            <i class="bi bi-clock-history me-2 text-gradient"></i>Quiz History
+        </h3>
+
+        {% if attempts %}
+        <div class="table-responsive">
+            <table class="table table-dark-custom">
+                <thead>
+                    <tr>
+                        <th>Quiz</th>
+                        <th>Department</th>
+                        <th>Score</th>
+                        <th>Result</th>
+                        <th>Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in attempts %}
+                    <tr>
+                        <td class="fw-600">{{ attempt.quiz.name }}</td>
+                        <td>
+                            <span class="text-muted small">{{ attempt.quiz.department.name }}</span>
+                        </td>
+                        <td>
+                            <span class="fw-600">{{ attempt.score }}/{{ attempt.total_marks }}</span>
+                            <span class="text-muted small ms-1">({{ attempt.percentage }}%)</span>
+                        </td>
+                        <td>
+                            <span class="quiz-badge {% if attempt.passed %}badge-pass{% else %}badge-fail{% endif %}">
+                                {% if attempt.passed %}Passed{% else %}Failed{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ attempt.started_at|date:"M d, Y H:i" }}</small>
+                        </td>
+                        <td>
+                            <a href="{% url 'quiz_result' attempt_id=attempt.id %}" class="btn btn-glass btn-sm">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-journal-x d-block"></i>
+            <h5>No Quizzes Taken Yet</h5>
+            <p>Start taking quizzes to see your history here.</p>
+            <a href="{% url 'home' %}" class="btn btn-gradient mt-2">
+                <i class="bi bi-rocket-takeoff-fill me-2"></i> Browse Quizzes
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

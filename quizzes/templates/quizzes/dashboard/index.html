@@ -1,0 +1,192 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Overview{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+{% block page_subtitle %}Welcome back! Here's what's happening with your platform.{% endblock %}
+
+{% with active_page='overview' %}{% endwith %}
+
+{% block dash_content %}
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.12); color: var(--accent-primary);">
+                    <i class="bi bi-collection-fill"></i>
+                </div>
+                <div>
+                    <div class="dash-stat-value">{{ total_departments }}</div>
+                    <div class="dash-stat-label">Departments</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning);">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div>
+                    <div class="dash-stat-value">{{ total_quizzes }}</div>
+                    <div class="dash-stat-label">Quizzes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.12); color: var(--info);">
+                    <i class="bi bi-question-circle-fill"></i>
+                </div>
+                <div>
+                    <div class="dash-stat-value">{{ total_questions }}</div>
+                    <div class="dash-stat-label">Questions</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.12); color: var(--success);">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <div class="dash-stat-value">{{ total_users }}</div>
+                    <div class="dash-stat-label">Users</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </div>
+                <div>
+                    <div class="dash-stat-value">{{ total_attempts }}</div>
+                    <div class="dash-stat-label">Total Attempts</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.12); color: var(--success);">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div>
+                    <div class="dash-stat-value">{{ total_passed }}</div>
+                    <div class="dash-stat-label">Passed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.12); color: var(--accent-secondary);">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div>
+                    <div class="dash-stat-value">{{ pass_rate }}%</div>
+                    <div class="dash-stat-label">Pass Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning);">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div>
+                    <div class="dash-stat-value">{{ staff_count }}</div>
+                    <div class="dash-stat-label">Staff Members</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Quizzes Needing Questions -->
+    {% if quizzes_needing_qs %}
+    <div class="col-lg-6">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h5><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Quizzes Needing Questions</h5>
+            </div>
+            <div class="dash-card-body p-0">
+                {% for quiz in quizzes_needing_qs %}
+                <div class="dash-alert-card mx-3 {% if forloop.first %}mt-3{% endif %} {% if forloop.last %}mb-3{% endif %}">
+                    <i class="bi bi-journal-x text-warning"></i>
+                    <div class="flex-grow-1">
+                        <strong>{{ quiz.name }}</strong>
+                        <span class="text-muted small">— {{ quiz.question_count }}/{{ quiz.total_questions }} questions</span>
+                    </div>
+                    <a href="{% url 'dashboard_quiz_questions' pk=quiz.pk %}" class="dash-action-btn" title="Add Questions">
+                        <i class="bi bi-plus-lg"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Attempts -->
+    <div class="col-lg-{% if quizzes_needing_qs %}6{% else %}12{% endif %}">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h5><i class="bi bi-clock-history me-2 text-gradient"></i>Recent Attempts</h5>
+                <a href="{% url 'dashboard_attempts' %}" class="text-muted small text-decoration-none">View All →</a>
+            </div>
+            <div class="dash-card-body p-0">
+                {% if recent_attempts %}
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Quiz</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in recent_attempts %}
+                            <tr>
+                                <td class="fw-600">{{ attempt.user.get_full_name|default:attempt.user.username }}</td>
+                                <td class="text-muted small">{{ attempt.quiz.name }}</td>
+                                <td class="fw-600">{{ attempt.score }}/{{ attempt.total_marks }}</td>
+                                <td>
+                                    <span class="quiz-badge {% if attempt.passed %}badge-pass{% else %}badge-fail{% endif %}">
+                                        {% if attempt.passed %}Pass{% else %}Fail{% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="dash-empty">
+                    <i class="bi bi-inbox d-block"></i>
+                    <p>No attempts yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Quizzes{% endblock %}
+{% block page_title %}Quizzes{% endblock %}
+{% block page_subtitle %}Create and manage all quizzes{% endblock %}
+
+{% with active_page='quizzes' %}{% endwith %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div></div>
+    <a href="{% url 'dashboard_quiz_create' %}" class="btn btn-gradient">
+        <i class="bi bi-plus-lg me-2"></i> New Quiz
+    </a>
+</div>
+
+<div class="dash-card">
+    <div class="dash-card-body p-0">
+        {% if quizzes %}
+        <div class="table-responsive">
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th>Quiz</th>
+                        <th>Department</th>
+                        <th>Questions</th>
+                        <th>Time</th>
+                        <th>Pass Mark</th>
+                        <th>Status</th>
+                        <th style="width: 160px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for quiz in quizzes %}
+                    <tr>
+                        <td>
+                            <div class="fw-600">{{ quiz.name }}</div>
+                        </td>
+                        <td><small class="text-muted">{{ quiz.department.name }}</small></td>
+                        <td>
+                            <span class="fw-600 {% if quiz.question_count < quiz.total_questions %}text-warning{% else %}text-success{% endif %}">
+                                {{ quiz.question_count }}/{{ quiz.total_questions }}
+                            </span>
+                        </td>
+                        <td><small>{{ quiz.time_limit }} min</small></td>
+                        <td><small>{{ quiz.pass_mark }}</small></td>
+                        <td>
+                            {% if quiz.is_published %}
+                                <span class="quiz-badge badge-pass">Published</span>
+                            {% else %}
+                                <span class="quiz-badge" style="background: rgba(245,158,11,0.12);color:#f59e0b;">Draft</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="dash-actions">
+                                <a href="{% url 'dashboard_quiz_questions' pk=quiz.pk %}" class="dash-action-btn" title="Manage Questions">
+                                    <i class="bi bi-list-check"></i>
+                                </a>
+                                <a href="{% url 'dashboard_quiz_edit' pk=quiz.pk %}" class="dash-action-btn" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'dashboard_quiz_delete' pk=quiz.pk %}" class="dash-action-btn danger" title="Delete">
+                                    <i class="bi bi-trash3"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="dash-empty">
+            <i class="bi bi-journal-text d-block"></i>
+            <h5>No Quizzes</h5>
+            <p>Create your first quiz to get started.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

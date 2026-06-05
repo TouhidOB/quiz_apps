@@ -1,0 +1,151 @@
+{% extends "quizzes/base.html" %}
+
+{% block title %}{{ quiz.name }} — QuizMaster{% endblock %}
+{% block meta_description %}{{ quiz.name }} quiz: {{ quiz.prerequisites|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-nav">
+        <a href="{% url 'home' %}"><i class="bi bi-house-fill"></i> Home</a>
+        <span class="mx-2">/</span>
+        <a href="{{ quiz.department.get_absolute_url }}">{{ quiz.department.name }}</a>
+        <span class="mx-2">/</span>
+        <span class="current">{{ quiz.name }}</span>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <div class="detail-header">
+                <h1 class="section-title">{{ quiz.name }}</h1>
+                <div class="d-flex align-items-center gap-2 mt-2">
+                    <span class="quiz-badge badge-pending">
+                        <i class="bi bi-folder2 me-1"></i>{{ quiz.department.name }}
+                    </span>
+                    {% if quiz.has_enough_questions %}
+                    <span class="quiz-badge badge-pass">
+                        <i class="bi bi-check-circle me-1"></i>Ready
+                    </span>
+                    {% else %}
+                    <span class="quiz-badge badge-fail">
+                        <i class="bi bi-exclamation-circle me-1"></i>Not enough questions
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Prerequisites -->
+            <div class="prerequisites-box">
+                <h6><i class="bi bi-book"></i> Prerequisites & Description</h6>
+                <p class="mb-0 small text-secondary">{{ quiz.prerequisites|linebreaksbr }}</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="detail-stats">
+                <div class="detail-stat">
+                    <div class="detail-stat-value">{{ quiz.total_questions }}</div>
+                    <div class="detail-stat-label">Questions</div>
+                </div>
+                <div class="detail-stat">
+                    <div class="detail-stat-value">{{ quiz.mark_per_question }}</div>
+                    <div class="detail-stat-label">Marks Each</div>
+                </div>
+                <div class="detail-stat">
+                    <div class="detail-stat-value">{{ quiz.total_marks }}</div>
+                    <div class="detail-stat-label">Total Marks</div>
+                </div>
+                <div class="detail-stat">
+                    <div class="detail-stat-value">{{ quiz.pass_mark }}</div>
+                    <div class="detail-stat-label">Pass Mark</div>
+                </div>
+                <div class="detail-stat">
+                    <div class="detail-stat-value">{{ quiz.time_limit }}<small class="text-muted">m</small></div>
+                    <div class="detail-stat-label">Time Limit</div>
+                </div>
+                <div class="detail-stat">
+                    <div class="detail-stat-value">{{ pass_rate }}%</div>
+                    <div class="detail-stat-label">Pass Rate</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 d-flex gap-2 flex-wrap">
+                {% if user.is_authenticated %}
+                    {% if can_take and quiz.has_enough_questions %}
+                    <a href="{% url 'take_quiz' slug=quiz.slug %}" class="btn btn-gradient btn-gradient-lg">
+                        <i class="bi bi-play-circle-fill me-2"></i>
+                        {% if user_attempts %}Retake Quiz{% else %}Start Quiz{% endif %}
+                    </a>
+                    {% elif not can_take %}
+                    <button class="btn btn-glass btn-gradient-lg" disabled>
+                        <i class="bi bi-lock-fill me-2"></i> Already Attempted (No Retakes)
+                    </button>
+                    {% else %}
+                    <button class="btn btn-glass btn-gradient-lg" disabled>
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Not Enough Questions
+                    </button>
+                    {% endif %}
+
+                    {% if user.is_staff %}
+                    <a href="{% url 'upload_questions' slug=quiz.slug %}" class="btn btn-glass">
+                        <i class="bi bi-cloud-arrow-up-fill me-2"></i> Upload Questions
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-gradient btn-gradient-lg">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Login to Start Quiz
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quiz Stats -->
+            <div class="glass-card-static mb-3">
+                <h6 class="fw-700 mb-3"><i class="bi bi-bar-chart-fill me-2 text-gradient"></i>Quiz Statistics</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Total Attempts</span>
+                    <span class="fw-600">{{ attempt_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Passed</span>
+                    <span class="fw-600 text-success">{{ pass_count }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Pass Rate</span>
+                    <span class="fw-600">{{ pass_rate }}%</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted small">Avg Score</span>
+                    <span class="fw-600">{{ avg_score }}</span>
+                </div>
+            </div>
+
+            <!-- Previous Attempts -->
+            {% if user_attempts %}
+            <div class="glass-card-static">
+                <h6 class="fw-700 mb-3"><i class="bi bi-clock-history me-2 text-gradient"></i>Your Attempts</h6>
+                {% for attempt in user_attempts %}
+                <a href="{% url 'quiz_result' attempt_id=attempt.id %}" class="d-block mb-2 text-decoration-none">
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background: rgba(255,255,255,0.03);">
+                        <div>
+                            <span class="fw-600 small {% if attempt.passed %}text-success{% else %}text-danger{% endif %}">
+                                {{ attempt.score }}/{{ attempt.total_marks }}
+                            </span>
+                            <br>
+                            <small class="text-muted">{{ attempt.started_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <span class="quiz-badge {% if attempt.passed %}badge-pass{% else %}badge-fail{% endif %}">
+                            {% if attempt.passed %}Pass{% else %}Fail{% endif %}
+                        </span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

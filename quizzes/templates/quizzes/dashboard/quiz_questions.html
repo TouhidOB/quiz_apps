@@ -1,0 +1,198 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Questions — {{ quiz.name }}{% endblock %}
+{% block page_title %}{{ quiz.name }}{% endblock %}
+{% block page_subtitle %}Manage questions — {{ quiz.question_count }}/{{ quiz.total_questions }} loaded{% endblock %}
+
+{% block dash_content %}
+<!-- Status Bar -->
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+    <div class="dash-stat-card" style="padding:0.8rem 1.2rem;">
+        <div class="d-flex align-items-center gap-2">
+            <span class="fw-800" style="font-size:1.1rem;{% if quiz.question_count >= quiz.total_questions %}color:var(--success);{% else %}color:var(--warning);{% endif %}">
+                {{ quiz.question_count }} / {{ quiz.total_questions }}
+            </span>
+            <span class="dash-stat-label">Questions</span>
+        </div>
+    </div>
+    <div class="dash-stat-card" style="padding:0.8rem 1.2rem;">
+        <div class="d-flex align-items-center gap-2">
+            <span class="fw-700 small">{{ quiz.department.name }}</span>
+        </div>
+    </div>
+    {% if quiz.question_count >= quiz.total_questions %}
+    <span class="quiz-badge badge-pass"><i class="bi bi-check-circle me-1"></i> Ready</span>
+    {% else %}
+    <span class="quiz-badge" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+        <i class="bi bi-exclamation-circle me-1"></i> Needs {{ quiz.total_questions|add:"-"|add:quiz.question_count }} more
+    </span>
+    {% endif %}
+    <a href="{% url 'dashboard_quizzes' %}" class="btn btn-glass btn-sm ms-auto">
+        <i class="bi bi-arrow-left me-1"></i> Back to Quizzes
+    </a>
+</div>
+
+<!-- Upload Tabs -->
+<div class="row g-4 mb-4">
+    <!-- Manual Add Form -->
+    <div class="col-lg-6">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h5><i class="bi bi-pencil-square me-2" style="color:var(--accent-primary);"></i>Add Manually</h5>
+            </div>
+            <div class="dash-card-body">
+                <form method="post" action="{% url 'dashboard_add_question_manual' pk=quiz.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Question Text <span class="text-danger">*</span></label>
+                        {{ manual_form.question_text }}
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Option A <span class="text-danger">*</span></label>
+                            {{ manual_form.choice_a }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Option B <span class="text-danger">*</span></label>
+                            {{ manual_form.choice_b }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Option C</label>
+                            {{ manual_form.choice_c }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Option D</label>
+                            {{ manual_form.choice_d }}
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Correct Answer <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            {% for radio in manual_form.correct_answer %}
+                            <div class="form-check">
+                                {{ radio.tag }}
+                                <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-gradient mt-3">
+                        <i class="bi bi-plus-lg me-2"></i> Add Question
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Docs Upload -->
+    <div class="col-lg-6">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h5><i class="bi bi-cloud-upload me-2" style="color:var(--accent-secondary);"></i>Import from Google Docs</h5>
+            </div>
+            <div class="dash-card-body">
+                <form method="post" action="{% url 'dashboard_add_question_gdoc' pk=quiz.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_doc_url" class="form-label">Google Docs Link <span class="text-danger">*</span></label>
+                        {{ gdoc_form.doc_url }}
+                        <small class="text-muted d-block mt-1">{{ gdoc_form.doc_url.help_text }}</small>
+                    </div>
+                    <div class="form-check mb-3">
+                        {{ gdoc_form.clear_existing }}
+                        <label class="form-check-label" for="id_clear_existing">Clear existing questions first</label>
+                    </div>
+                    <button type="submit" class="btn btn-gradient">
+                        <i class="bi bi-cloud-download me-2"></i> Import Questions
+                    </button>
+                </form>
+
+                <!-- Format Guide -->
+                <div class="mt-4 p-3" style="background:rgba(255,255,255,0.02);border-radius:var(--radius-sm);border:1px solid var(--glass-border);">
+                    <h6 class="fw-700 small mb-2"><i class="bi bi-info-circle me-1 text-info"></i> Expected Document Format</h6>
+                    <pre class="mb-0" style="font-size:0.75rem;color:var(--text-secondary);background:transparent;border:none;"><code>1. What is the capital of France?
+a) London
+b) Paris
+c) Berlin
+d) Madrid
+Answer: b
+
+2. Next question...
+a) Option 1
+b) Option 2
+c) Option 3
+d) Option 4
+Answer: c</code></pre>
+                </div>
+
+                <!-- Upload History -->
+                {% if uploads %}
+                <div class="mt-3">
+                    <h6 class="fw-700 small mb-2">Recent Imports</h6>
+                    {% for u in uploads %}
+                    <div class="d-flex align-items-center gap-2 mb-2" style="font-size:0.82rem;">
+                        {% if u.status == 'success' %}
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                        {% elif u.status == 'failed' %}
+                            <i class="bi bi-x-circle-fill text-danger"></i>
+                        {% else %}
+                            <i class="bi bi-hourglass-split text-warning"></i>
+                        {% endif %}
+                        <span class="text-muted">{{ u.created_at|date:"M d, H:i" }}</span>
+                        {% if u.status == 'success' %}
+                            <span class="text-success">+{{ u.questions_imported }} questions</span>
+                        {% else %}
+                            <span class="text-danger">{{ u.status }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Existing Questions -->
+<div class="dash-card">
+    <div class="dash-card-header">
+        <h5><i class="bi bi-list-ol me-2"></i>All Questions ({{ quiz.question_count }})</h5>
+    </div>
+    <div class="dash-card-body">
+        {% if questions %}
+            {% for q in questions %}
+            <div class="dash-question-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex gap-3 align-items-start flex-grow-1">
+                        <div class="dash-question-num">{{ q.order }}</div>
+                        <div>
+                            <div class="fw-600 mb-2">{{ q.text }}</div>
+                            <div class="d-flex flex-wrap">
+                                {% for choice in q.choices.all %}
+                                <span class="dash-choice-chip {% if choice.is_correct %}correct{% else %}wrong{% endif %}">
+                                    {% if choice.is_correct %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+                                    {{ choice.text }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <form method="post" action="{% url 'dashboard_delete_question' pk=q.pk %}" style="flex-shrink:0;">
+                        {% csrf_token %}
+                        <button type="submit" class="dash-action-btn danger" title="Delete" onclick="return confirm('Delete this question?');">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="dash-empty">
+                <i class="bi bi-question-circle d-block"></i>
+                <h5>No Questions Yet</h5>
+                <p>Use the forms above to add questions manually or import from Google Docs.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

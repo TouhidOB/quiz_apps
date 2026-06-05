@@ -1,0 +1,82 @@
+{% extends "quizzes/base.html" %}
+
+{% block title %}{{ department.name }} — QuizMaster{% endblock %}
+{% block meta_description %}Browse quizzes in {{ department.name }}. {{ department.description|truncatewords:20 }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-nav">
+        <a href="{% url 'home' %}"><i class="bi bi-house-fill"></i> Home</a>
+        <span class="mx-2">/</span>
+        <span class="current">{{ department.name }}</span>
+    </div>
+
+    <!-- Department Header -->
+    <div class="section-header">
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <div class="dept-icon">
+                <i class="bi {{ department.icon }}"></i>
+            </div>
+            <div>
+                <h1 class="section-title mb-0">{{ department.name }}</h1>
+                <p class="section-subtitle mb-0">{{ department.description }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz List -->
+    <div class="row g-4">
+        {% for quiz in quizzes %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ quiz.get_absolute_url }}" class="quiz-card glass-card d-block">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h4 class="fw-700 fs-6 mb-0">{{ quiz.name }}</h4>
+                    {% if user.is_authenticated and quiz.user_passed %}
+                        <span class="quiz-badge badge-pass">Passed</span>
+                    {% elif user.is_authenticated and quiz.user_attempts > 0 %}
+                        <span class="quiz-badge badge-fail">Failed</span>
+                    {% else %}
+                        <span class="quiz-badge badge-pending">New</span>
+                    {% endif %}
+                </div>
+
+                <p class="text-muted small mb-2">{{ quiz.prerequisites|truncatewords:15 }}</p>
+
+                <div class="quiz-meta">
+                    <div class="quiz-meta-item">
+                        <i class="bi bi-question-circle"></i>
+                        {{ quiz.total_questions }} Questions
+                    </div>
+                    <div class="quiz-meta-item">
+                        <i class="bi bi-clock"></i>
+                        {{ quiz.time_limit }} min
+                    </div>
+                    <div class="quiz-meta-item">
+                        <i class="bi bi-trophy"></i>
+                        {{ quiz.pass_mark }} to pass
+                    </div>
+                </div>
+
+                {% if user.is_authenticated and quiz.best_score is not None %}
+                <div class="mt-2">
+                    <small class="text-muted">
+                        <i class="bi bi-graph-up me-1"></i>Best: {{ quiz.best_score }}/{{ quiz.total_marks }}
+                        · {{ quiz.user_attempts }} attempt{{ quiz.user_attempts|pluralize }}
+                    </small>
+                </div>
+                {% endif %}
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="bi bi-journal-x d-block"></i>
+                <h5>No Quizzes Yet</h5>
+                <p>Quizzes for this department will appear here once published.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends "quizzes/base.html" %}
+
+{% block title %}Upload Questions — {{ quiz.name }} — QuizMaster{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-nav">
+        <a href="{% url 'home' %}"><i class="bi bi-house-fill"></i> Home</a>
+        <span class="mx-2">/</span>
+        <a href="{{ quiz.department.get_absolute_url }}">{{ quiz.department.name }}</a>
+        <span class="mx-2">/</span>
+        <a href="{{ quiz.get_absolute_url }}">{{ quiz.name }}</a>
+        <span class="mx-2">/</span>
+        <span class="current">Upload Questions</span>
+    </div>
+
+    <div class="upload-zone">
+        <div class="section-header text-center">
+            <h1 class="section-title">
+                <i class="bi bi-cloud-arrow-up-fill me-2 text-gradient"></i>Upload Questions
+            </h1>
+            <p class="section-subtitle">Import questions from a Google Docs document for <strong>{{ quiz.name }}</strong></p>
+        </div>
+
+        <!-- Current Status -->
+        <div class="glass-card-static mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small">Current Questions</span>
+                    <div class="fw-700 fs-5">
+                        {{ quiz.question_count }} / {{ quiz.total_questions }}
+                        {% if quiz.has_enough_questions %}
+                            <span class="quiz-badge badge-pass ms-2">Ready</span>
+                        {% else %}
+                            <span class="quiz-badge badge-fail ms-2">Need More</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="detail-stat" style="padding: 0.6rem 1.2rem;">
+                    <div class="detail-stat-value" style="font-size: 1.1rem;">
+                        {{ quiz.total_questions|add:"-"|add:quiz.question_count|default:"0" }}
+                    </div>
+                    <div class="detail-stat-label" style="font-size: 0.7rem;">Remaining</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="glass-card-static mb-4">
+            <h5 class="fw-700 mb-3"><i class="bi bi-link-45deg me-2 text-gradient"></i>Google Docs Link</h5>
+
+            <form method="post" id="uploadForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_doc_url" class="form-label">{{ form.doc_url.label }}</label>
+                    {{ form.doc_url }}
+                    <div class="form-text">{{ form.doc_url.help_text }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.clear_existing }}
+                        <label class="form-check-label small" for="id_clear_existing">
+                            {{ form.clear_existing.label }}
+                        </label>
+                        <div class="form-text">{{ form.clear_existing.help_text }}</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-gradient w-100" id="uploadBtn">
+                    <i class="bi bi-cloud-arrow-up-fill me-2"></i> Import Questions
+                </button>
+            </form>
+        </div>
+
+        <!-- Expected Format -->
+        <div class="glass-card-static mb-4">
+            <h5 class="fw-700 mb-3"><i class="bi bi-file-earmark-text me-2 text-gradient"></i>Expected Document Format</h5>
+            <p class="text-muted small mb-3">Your Google Doc should follow this exact format:</p>
+            <div class="format-example">1. What is the capital of France?
+a) London
+b) Paris
+c) Berlin
+d) Madrid
+Answer: b
+
+2. Which planet is closest to the sun?
+a) Venus
+b) Earth
+c) Mercury
+d) Mars
+Answer: c</div>
+            <div class="mt-3">
+                <div class="text-muted small">
+                    <i class="bi bi-info-circle me-1"></i> <strong>Rules:</strong>
+                    <ul class="mt-1 mb-0">
+                        <li>Each question starts with a number followed by a period or parenthesis</li>
+                        <li>Options start with a letter (a, b, c, d…) followed by a parenthesis</li>
+                        <li>The correct answer is on a line starting with "Answer:" followed by the option letter</li>
+                        <li>Leave a blank line between questions</li>
+                        <li>The document must be publicly accessible ("Anyone with the link can view")</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parse Errors -->
+        {% if parse_errors %}
+        <div class="glass-card-static mb-4" style="border-color: rgba(239, 68, 68, 0.3);">
+            <h5 class="fw-700 mb-3 text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Validation Errors</h5>
+            <ul class="mb-0 small">
+                {% for error in parse_errors %}
+                <li class="text-danger mb-1">{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Upload History -->
+        {% if uploads %}
+        <div class="glass-card-static">
+            <h5 class="fw-700 mb-3"><i class="bi bi-clock-history me-2 text-gradient"></i>Upload History</h5>
+            <div class="table-responsive">
+                <table class="table table-dark-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Questions</th>
+                            <th>By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for upload in uploads %}
+                        <tr>
+                            <td>{{ upload.created_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <span class="upload-status {{ upload.status }}">
+                                    {% if upload.status == 'success' %}
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    {% elif upload.status == 'failed' %}
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-hourglass-split"></i>
+                                    {% endif %}
+                                    {{ upload.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ upload.questions_imported }}</td>
+                            <td>{{ upload.uploaded_by.username }}</td>
+                        </tr>
+                        {% if upload.error_message %}
+                        <tr>
+                            <td colspan="4">
+                                <small class="text-danger">{{ upload.error_message }}</small>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
