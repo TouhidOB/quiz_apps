@@ -1,0 +1,72 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Category Review{% endblock %}
+{% block page_title %}Category Review Queue{% endblock %}
+{% block page_subtitle %}Approve vendor-proposed categories & subcategories{% endblock %}
+
+{% block dash_content %}
+<div class="d-flex gap-2 mb-4">
+    <a href="{% url 'dashboard_review_quizzes' %}" class="btn btn-sm btn-glass">Quizzes</a>
+    <a href="{% url 'dashboard_review_packages' %}" class="btn btn-sm btn-glass">Packages</a>
+    <a href="{% url 'dashboard_review_categories' %}" class="btn btn-sm btn-gradient">Categories</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="dash-card">
+            <div class="dash-card-header"><h5><i class="bi bi-collection-fill me-2"></i>Categories</h5></div>
+            <div class="dash-card-body p-0">
+                {% if departments %}
+                <table class="dash-table">
+                    <thead><tr><th>Name</th><th>By</th><th style="width:170px;">Actions</th></tr></thead>
+                    <tbody>
+                    {% for d in departments %}
+                    <tr>
+                        <td><i class="bi {{ d.icon }} me-2"></i>{{ d.name }}</td>
+                        <td><small class="text-muted">{{ d.created_by.username|default:"—" }}</small></td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <form method="post" action="{% url 'dashboard_approve_category' pk=d.pk %}">{% csrf_token %}<input type="hidden" name="action" value="approve"><button class="btn btn-sm btn-success">Approve</button></form>
+                                <form method="post" action="{% url 'dashboard_approve_category' pk=d.pk %}" onsubmit="return confirm('Reject and delete this category?');">{% csrf_token %}<input type="hidden" name="action" value="reject"><button class="btn btn-sm btn-outline-danger">Reject</button></form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="dash-empty"><i class="bi bi-collection d-block"></i><p>No categories pending.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="dash-card">
+            <div class="dash-card-header"><h5><i class="bi bi-diagram-3-fill me-2"></i>Subcategories</h5></div>
+            <div class="dash-card-body p-0">
+                {% if subcategories %}
+                <table class="dash-table">
+                    <thead><tr><th>Name</th><th>Category</th><th style="width:170px;">Actions</th></tr></thead>
+                    <tbody>
+                    {% for s in subcategories %}
+                    <tr>
+                        <td>{{ s.name }}</td>
+                        <td><small class="text-muted">{{ s.department.name }}</small></td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <form method="post" action="{% url 'dashboard_approve_subcategory' pk=s.pk %}">{% csrf_token %}<input type="hidden" name="action" value="approve"><button class="btn btn-sm btn-success">Approve</button></form>
+                                <form method="post" action="{% url 'dashboard_approve_subcategory' pk=s.pk %}" onsubmit="return confirm('Reject and delete this subcategory?');">{% csrf_token %}<input type="hidden" name="action" value="reject"><button class="btn btn-sm btn-outline-danger">Reject</button></form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="dash-empty"><i class="bi bi-diagram-3 d-block"></i><p>No subcategories pending.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

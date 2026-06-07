@@ -7,6 +7,13 @@
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
+    <!-- CSS-3D floating scene (decorative) -->
+    <div class="hero-3d" aria-hidden="true">
+        <div class="float-card fc-1"><i class="bi bi-journal-text"></i></div>
+        <div class="float-card fc-2"><i class="bi bi-trophy-fill"></i></div>
+        <div class="float-card fc-3"><i class="bi bi-lightning-charge-fill"></i></div>
+        <div class="float-card fc-4"><i class="bi bi-patch-check-fill"></i></div>
+    </div>
     <div class="container">
         <h1 class="hero-title fade-in-up">
             Master Any Field with<br>
@@ -158,7 +165,7 @@
         </div>
 
         <div class="row g-4">
-            {% for department in departments %}
+            {% for department in departments|slice:":6" %}
             <div class="col-md-6 col-lg-4">
                 <a href="{{ department.get_absolute_url }}" class="dept-card glass-card d-block">
                     <div class="dept-icon">
@@ -182,6 +189,14 @@
             </div>
             {% endfor %}
         </div>
+
+        {% if departments.count > 6 %}
+        <div class="text-center mt-4">
+            <a href="{% url 'departments' %}" class="btn btn-glass btn-gradient-lg">
+                <i class="bi bi-grid-3x3-gap-fill me-2"></i> View All Departments
+            </a>
+        </div>
+        {% endif %}
     </div>
 </section>
 

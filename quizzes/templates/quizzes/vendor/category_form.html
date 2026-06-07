@@ -1,0 +1,28 @@
+{% extends "quizzes/vendor/base.html" %}
+
+{% block title %}New {{ kind }}{% endblock %}
+{% block page_title %}New {{ kind }}{% endblock %}
+{% block page_subtitle %}Submitted for admin approval before going public{% endblock %}
+
+{% block dash_content %}
+<div class="dash-form-card" style="max-width: 600px;">
+    <form method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+        <div class="alert alert-danger glass-alert mb-3"><i class="bi bi-exclamation-triangle-fill me-2"></i> Please fix the errors below.</div>
+        {% endif %}
+        {% if form.department %}
+        <div class="mb-3"><label class="form-label">Parent Category <span class="text-danger">*</span></label>{{ form.department }}</div>
+        {% endif %}
+        <div class="mb-3"><label class="form-label">Name <span class="text-danger">*</span></label>{{ form.name }}
+            {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-3"><label class="form-label">Icon</label>{{ form.icon }}</div>
+        <div class="mb-3"><label class="form-label">Description</label>{{ form.description }}</div>
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-gradient"><i class="bi bi-send-fill me-2"></i> Submit for Approval</button>
+            <a href="{% url 'vendor_categories' %}" class="btn btn-glass">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

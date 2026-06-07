@@ -1,0 +1,39 @@
+{% extends "quizzes/vendor/base.html" %}
+
+{% block title %}Sales & Earnings{% endblock %}
+{% block page_title %}Sales & Earnings{% endblock %}
+{% block page_subtitle %}Platform fee of ৳{{ fee_per_sale }} is deducted per sale{% endblock %}
+
+{% block dash_content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="dash-stat-card"><div class="dash-stat-label mb-1">Total Sales</div><div class="dash-stat-value">{{ total_sales }}</div></div></div>
+    <div class="col-md-4"><div class="dash-stat-card"><div class="dash-stat-label mb-1">Net Earnings</div><div class="dash-stat-value text-success">৳{{ total_earnings }}</div></div></div>
+    <div class="col-md-4"><div class="dash-stat-card"><div class="dash-stat-label mb-1">Fees Paid</div><div class="dash-stat-value">৳{{ total_fees }}</div></div></div>
+</div>
+
+<div class="dash-card">
+    <div class="dash-card-header"><h5><i class="bi bi-receipt me-2"></i>Sale History</h5></div>
+    <div class="dash-card-body p-0">
+        {% if sales %}
+        <table class="dash-table">
+            <thead><tr><th>Date</th><th>Type</th><th>Item</th><th>Buyer</th><th>Sale</th><th>Fee</th><th>You Earned</th></tr></thead>
+            <tbody>
+            {% for s in sales %}
+            <tr>
+                <td><small>{{ s.created_at|date:"M d, Y" }}</small></td>
+                <td><span class="text-capitalize">{{ s.sale_type }}</span></td>
+                <td><small>{% if s.quiz %}{{ s.quiz.name }}{% elif s.package %}{{ s.package.name }}{% else %}—{% endif %}</small></td>
+                <td><small class="text-muted">{{ s.buyer.username|default:"—" }}</small></td>
+                <td>৳{{ s.sale_amount }}</td>
+                <td class="text-warning">−৳{{ s.platform_fee }}</td>
+                <td class="text-success fw-600">৳{{ s.vendor_earning }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="dash-empty"><i class="bi bi-cash-stack d-block"></i><h5>No Sales Yet</h5><p>Sales of your paid quizzes and packages will appear here.</p></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

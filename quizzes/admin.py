@@ -2,7 +2,9 @@ from django.contrib import admin
 from .models import (
     Department, Quiz, Question, Choice,
     QuizAttempt, UserAnswer, GoogleDocUpload,
-    Package, PackagePurchase
+    Package, PackagePurchase,
+    VendorProfile, SubCategory, PlatformSetting,
+    QuizPurchase, VendorSale,
 )
 
 
@@ -49,11 +51,11 @@ class DepartmentAdmin(admin.ModelAdmin):
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'department', 'total_questions', 'question_count_display',
-        'mark_per_question', 'pass_mark', 'time_limit',
+        'name', 'department', 'owner', 'status', 'price', 'total_questions',
+        'question_count_display', 'mark_per_question', 'pass_mark', 'time_limit',
         'is_published', 'created_at'
     )
-    list_filter = ('department', 'is_published', 'created_at')
+    list_filter = ('department', 'status', 'is_published', 'created_at')
     search_fields = ('name', 'prerequisites')
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ('is_published',)
@@ -126,8 +128,8 @@ class GoogleDocUploadAdmin(admin.ModelAdmin):
 
 @admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', 'price', 'discount_price', 'is_active', 'quiz_count', 'enrollment_count', 'created_at')
-    list_filter = ('is_active', 'created_at')
+    list_display = ('name', 'slug', 'owner', 'status', 'price', 'discount_price', 'is_active', 'quiz_count', 'enrollment_count', 'created_at')
+    list_filter = ('is_active', 'status', 'created_at')
     search_fields = ('name', 'description')
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ('is_active',)
@@ -144,10 +146,64 @@ class PackageAdmin(admin.ModelAdmin):
 
 @admin.register(PackagePurchase)
 class PackagePurchaseAdmin(admin.ModelAdmin):
-    list_display = ('user', 'package', 'purchased_at')
-    list_filter = ('purchased_at', 'package')
+    list_display = ('user', 'package', 'payment_status', 'amount_paid', 'purchased_at')
+    list_filter = ('payment_status', 'purchased_at', 'package')
     search_fields = ('user__username', 'package__name')
     readonly_fields = ('user', 'package', 'purchased_at')
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(VendorProfile)
+class VendorProfileAdmin(admin.ModelAdmin):
+    list_display = ('store_name', 'user', 'status', 'total_sales', 'total_earnings', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('store_name', 'user__username', 'user__email')
+    readonly_fields = ('created_at', 'approved_at', 'approved_by')
+
+
+@admin.register(SubCategory)
+class SubCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'department', 'is_active', 'is_approved', 'created_by', 'created_at')
+    list_filter = ('is_active', 'is_approved', 'department')
+    search_fields = ('name', 'description')
+    prepopulated_fields = {'slug': ('name',)}
+    list_editable = ('is_active', 'is_approved')
+
+
+@admin.register(PlatformSetting)
+class PlatformSettingAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'vendor_fee_per_sale', 'updated_at')
+
+    def has_add_permission(self, request):
+        return not PlatformSetting.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(QuizPurchase)
+class QuizPurchaseAdmin(admin.ModelAdmin):
+    list_display = ('user', 'quiz', 'payment_status', 'amount_paid', 'purchased_at')
+    list_filter = ('payment_status', 'purchased_at')
+    search_fields = ('user__username', 'quiz__name')
+    readonly_fields = ('user', 'quiz', 'purchased_at')
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(VendorSale)
+class VendorSaleAdmin(admin.ModelAdmin):
+    list_display = ('vendor', 'sale_type', 'buyer', 'sale_amount', 'platform_fee', 'vendor_earning', 'created_at')
+    list_filter = ('sale_type', 'created_at')
+    search_fields = ('vendor__username', 'buyer__username')
+    readonly_fields = (
+        'vendor', 'buyer', 'sale_type', 'quiz', 'package',
+        'quiz_purchase', 'package_purchase', 'sale_amount',
+        'platform_fee', 'vendor_earning', 'created_at'
+    )
 
     def has_add_permission(self, request):
         return False

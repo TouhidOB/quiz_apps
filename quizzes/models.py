@@ -1,8 +1,92 @@
 import uuid
+from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.urls import reverse
+
+
+class VendorProfile(models.Model):
+    """A third-party vendor account. Created on vendor registration and gated
+    behind admin approval before the vendor dashboard becomes accessible."""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Approval'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('suspended', 'Suspended'),
+    ]
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='vendor_profile'
+    )
+    store_name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    website = models.URLField(max_length=300, blank=True)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='pending'
+    )
+    rejection_reason = models.TextField(blank=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='approved_vendors'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.store_name} ({self.user.username}) — {self.status}"
+
+    @property
+    def is_approved(self):
+        return self.status == 'approved'
+
+    @property
+    def total_sales(self):
+        return self.user.vendor_sales.count()
+
+    @property
+    def total_earnings(self):
+        agg = self.user.vendor_sales.aggregate(total=models.Sum('vendor_earning'))
+        return agg['total'] or Decimal('0.00')
+
+    @property
+    def total_fees(self):
+        agg = self.user.vendor_sales.aggregate(total=models.Sum('platform_fee'))
+        return agg['total'] or Decimal('0.00')
+
+
+class PlatformSetting(models.Model):
+    """Singleton holding platform-wide configuration (admin-editable)."""
+    vendor_fee_per_sale = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00,
+        help_text='Fixed fee the platform keeps on each vendor sale. '
+                  'The vendor earns (sale price − this fee).'
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Platform Setting'
+        verbose_name_plural = 'Platform Settings'
+
+    def __str__(self):
+        return f'Platform Settings (fee/sale: {self.vendor_fee_per_sale})'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1  # enforce singleton
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
 
 
 class Department(models.Model):
@@ -16,6 +100,17 @@ class Department(models.Model):
         help_text='Bootstrap icon class, e.g. bi-gear-fill'
     )
     is_active = models.BooleanField(default=True)
+    is_approved = models.BooleanField(
+        default=False,
+        help_text='Vendor-created categories require admin approval before going public.'
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='created_departments',
+        help_text='The vendor who created this category. Empty for admin-created.'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -38,12 +133,79 @@ class Department(models.Model):
         return self.quizzes.filter(is_published=True).count()
 
 
+class SubCategory(models.Model):
+    """A subcategory nested under a Department."""
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.CASCADE,
+        related_name='subcategories'
+    )
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True, blank=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(
+        max_length=50,
+        default='bi-folder-fill',
+        help_text='Bootstrap icon class, e.g. bi-folder-fill'
+    )
+    is_active = models.BooleanField(default=True)
+    is_approved = models.BooleanField(
+        default=False,
+        help_text='Vendor-created subcategories require admin approval before going public.'
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='created_subcategories'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['department__name', 'name']
+        verbose_name_plural = 'Subcategories'
+
+    def __str__(self):
+        return f"{self.department.name} › {self.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(f"{self.department.name}-{self.name}")
+            self.slug = base
+        super().save(*args, **kwargs)
+
+    @property
+    def quiz_count(self):
+        return self.quizzes.filter(is_published=True).count()
+
+
 class Quiz(models.Model):
     """A quiz belonging to a department with all mandatory configuration."""
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved / Published'),
+        ('rejected', 'Rejected'),
+    ]
+
     department = models.ForeignKey(
         Department,
         on_delete=models.CASCADE,
         related_name='quizzes'
+    )
+    subcategory = models.ForeignKey(
+        SubCategory,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='quizzes'
+    )
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True, blank=True,
+        related_name='owned_quizzes',
+        help_text='The vendor who owns this quiz. Empty for platform/admin-owned quizzes.'
     )
     name = models.CharField(max_length=300)
     slug = models.SlugField(max_length=300, unique=True, blank=True)
@@ -65,6 +227,23 @@ class Quiz(models.Model):
         help_text='Time limit in minutes to complete the quiz.'
     )
     is_published = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='draft',
+        help_text='Review workflow status. Admin approval sets this to "approved" and publishes the quiz.'
+    )
+    rejection_reason = models.TextField(blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='reviewed_quizzes'
+    )
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00,
+        help_text='Price to purchase this quiz individually. 0 means free/open.'
+    )
     allow_retake = models.BooleanField(
         default=True,
         help_text='Allow users to retake this quiz.'
@@ -102,6 +281,14 @@ class Quiz(models.Model):
     @property
     def total_marks(self):
         return self.total_questions * self.mark_per_question
+
+    @property
+    def is_paid(self):
+        return self.price and self.price > 0
+
+    @property
+    def is_vendor_owned(self):
+        return self.owner_id is not None
 
     @property
     def question_count(self):
@@ -285,6 +472,33 @@ class GoogleDocUpload(models.Model):
 
 class Package(models.Model):
     """A bundle of quizzes that users can purchase/enroll in."""
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved / Published'),
+        ('rejected', 'Rejected'),
+    ]
+
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True, blank=True,
+        related_name='owned_packages',
+        help_text='The vendor who owns this package. Empty for platform/admin-owned packages.'
+    )
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='draft',
+        help_text='Review workflow status. Admin approval sets this to "approved".'
+    )
+    rejection_reason = models.TextField(blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='reviewed_packages'
+    )
     name = models.CharField(max_length=300)
     slug = models.SlugField(max_length=300, unique=True, blank=True)
     description = models.TextField(
@@ -326,6 +540,10 @@ class Package(models.Model):
 
     def get_absolute_url(self):
         return reverse('package_detail', kwargs={'slug': self.slug})
+
+    @property
+    def is_vendor_owned(self):
+        return self.owner_id is not None
 
     @property
     def quiz_count(self):
@@ -422,3 +640,105 @@ class BookmarkedQuestion(models.Model):
 
     def __str__(self):
         return f"{self.user.username} ★ Q{self.question.order}: {self.question.text[:50]}"
+
+
+class QuizPurchase(models.Model):
+    """Records a user's purchase of an individual quiz."""
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='quiz_purchases'
+    )
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.CASCADE,
+        related_name='purchases'
+    )
+
+    transaction_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    payment_status = models.CharField(
+        max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending'
+    )
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    payment_method = models.CharField(max_length=100, blank=True)
+    sslcommerz_val_id = models.CharField(max_length=200, blank=True)
+    sslcommerz_tran_date = models.CharField(max_length=100, blank=True)
+
+    purchased_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'quiz')
+        ordering = ['-purchased_at']
+
+    def __str__(self):
+        return f"{self.user.username} → {self.quiz.name} ({self.payment_status})"
+
+    @property
+    def is_active_purchase(self):
+        return self.payment_status == 'completed'
+
+
+class VendorSale(models.Model):
+    """Earnings ledger: one row per completed sale of a vendor-owned quiz or package."""
+    SALE_TYPE_CHOICES = [
+        ('quiz', 'Quiz'),
+        ('package', 'Package'),
+    ]
+
+    vendor = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='vendor_sales'
+    )
+    buyer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='purchases_made'
+    )
+    sale_type = models.CharField(max_length=10, choices=SALE_TYPE_CHOICES)
+    quiz = models.ForeignKey(
+        Quiz,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='vendor_sales'
+    )
+    package = models.ForeignKey(
+        Package,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='vendor_sales'
+    )
+    quiz_purchase = models.OneToOneField(
+        QuizPurchase,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='vendor_sale'
+    )
+    package_purchase = models.OneToOneField(
+        PackagePurchase,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='vendor_sale'
+    )
+    sale_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    platform_fee = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00,
+        help_text='Snapshot of the platform fee at the time of sale.'
+    )
+    vendor_earning = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        item = self.quiz.name if self.quiz else (self.package.name if self.package else '—')
+        return f"{self.vendor.username} ← {item} (+{self.vendor_earning})"

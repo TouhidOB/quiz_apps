@@ -1,0 +1,51 @@
+{% extends "quizzes/vendor/base.html" %}
+
+{% block title %}My Packages{% endblock %}
+{% block page_title %}My Packages{% endblock %}
+{% block page_subtitle %}Bundle your published quizzes and submit for review{% endblock %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-end mb-4">
+    <a href="{% url 'vendor_package_create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-2"></i> New Package</a>
+</div>
+
+<div class="dash-card">
+    <div class="dash-card-body p-0">
+        {% if packages %}
+        <table class="dash-table">
+            <thead><tr><th>Package</th><th>Quizzes</th><th>Price</th><th>Status</th><th style="width:180px;">Actions</th></tr></thead>
+            <tbody>
+            {% for p in packages %}
+            <tr>
+                <td>
+                    <div class="fw-600">{{ p.name }}</div>
+                    {% if p.status == 'rejected' and p.rejection_reason %}<small class="text-danger">{{ p.rejection_reason }}</small>{% endif %}
+                </td>
+                <td>{{ p.quizzes.count }}</td>
+                <td>৳{{ p.effective_price }}</td>
+                <td>{% include "quizzes/vendor/_status_badge.html" with status=p.status %}</td>
+                <td>
+                    <div class="dash-actions">
+                        <a href="{% url 'vendor_package_edit' pk=p.pk %}" class="dash-action-btn" title="Edit"><i class="bi bi-pencil"></i></a>
+                        {% if p.status == 'draft' or p.status == 'rejected' %}
+                        <form method="post" action="{% url 'vendor_package_submit' pk=p.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="dash-action-btn" style="color:#22c55e;" title="Submit"><i class="bi bi-send-fill"></i></button>
+                        </form>
+                        {% endif %}
+                        <form method="post" action="{% url 'vendor_package_delete' pk=p.pk %}" class="d-inline" onsubmit="return confirm('Delete this package?');">
+                            {% csrf_token %}
+                            <button type="submit" class="dash-action-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="dash-empty"><i class="bi bi-box-seam d-block"></i><h5>No Packages</h5><p>Bundle your quizzes into a package to sell.</p></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

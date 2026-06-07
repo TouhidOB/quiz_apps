@@ -27,7 +27,7 @@
                 <div class="mb-3">
                     <label for="id_username" class="form-label">Username</label>
                     <div class="input-group">
-                        <span class="input-group-text" style="background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); color: var(--text-muted);">
+                        <span class="input-group-text" style="background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-muted);">
                             <i class="bi bi-person"></i>
                         </span>
                         <input type="text" name="username" id="id_username" class="form-control" placeholder="Enter your username" required autofocus>
@@ -37,7 +37,7 @@
                 <div class="mb-4">
                     <label for="id_password" class="form-label">Password</label>
                     <div class="input-group">
-                        <span class="input-group-text" style="background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); color: var(--text-muted);">
+                        <span class="input-group-text" style="background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-muted);">
                             <i class="bi bi-lock"></i>
                         </span>
                         <input type="password" name="password" id="id_password" class="form-control" placeholder="Enter your password" required>
@@ -47,12 +47,19 @@
                 <button type="submit" class="btn btn-gradient w-100 mb-3">
                     <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
                 </button>
-
-                <p class="text-center text-muted small mb-0">
-                    Don't have an account?
-                    <a href="{% url 'register' %}" class="text-decoration-none" style="color: var(--accent-tertiary);">Create one</a>
-                </p>
             </form>
+
+            <!-- Registration offer -->
+            <div class="auth-divider my-3">
+                <span>New to QuizMaster?</span>
+            </div>
+            <a href="{% url 'register' %}" class="btn btn-glass w-100">
+                <i class="bi bi-person-plus-fill me-2"></i> Create an Account
+            </a>
+            <p class="text-center text-muted small mt-3 mb-0">
+                Want to sell quizzes?
+                <a href="{% url 'vendor_register' %}" class="text-decoration-none fw-600" style="color: var(--accent-tertiary);">Become a vendor</a>
+            </p>
         </div>
     </div>
 </div>

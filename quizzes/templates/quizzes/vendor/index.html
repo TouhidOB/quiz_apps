@@ -1,0 +1,128 @@
+{% extends "quizzes/vendor/base.html" %}
+
+{% block title %}Overview{% endblock %}
+{% block page_title %}Vendor Overview{% endblock %}
+{% block page_subtitle %}Welcome, {{ profile.store_name }}! Here's how your store is doing.{% endblock %}
+
+{% block dash_content %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning);"><i class="bi bi-journal-text"></i></div>
+                <div>
+                    <div class="dash-stat-value">{{ total_quizzes }}</div>
+                    <div class="dash-stat-label">My Quizzes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.12); color: var(--success);"><i class="bi bi-check-circle-fill"></i></div>
+                <div>
+                    <div class="dash-stat-value">{{ published_quizzes }}</div>
+                    <div class="dash-stat-label">Published</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.12); color: var(--info);"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                    <div class="dash-stat-value">{{ pending_quizzes }}</div>
+                    <div class="dash-stat-label">Pending Review</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dash-stat-card">
+            <div class="d-flex align-items-center gap-3">
+                <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.12); color: var(--accent-primary);"><i class="bi bi-cash-stack"></i></div>
+                <div>
+                    <div class="dash-stat-value">৳{{ total_earnings }}</div>
+                    <div class="dash-stat-label">Net Earnings</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="dash-stat-label mb-1">Total Sales</div>
+            <div class="dash-stat-value">{{ total_sales }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="dash-stat-label mb-1">Platform Fees Paid</div>
+            <div class="dash-stat-value">৳{{ total_fees }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dash-stat-card">
+            <div class="dash-stat-label mb-1">Current Fee / Sale</div>
+            <div class="dash-stat-value">৳{{ fee_per_sale }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex gap-2 mb-4">
+    <a href="{% url 'vendor_quiz_create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-2"></i> New Quiz</a>
+    <a href="{% url 'vendor_package_create' %}" class="btn btn-glass"><i class="bi bi-box-seam me-2"></i> New Package</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="dash-card">
+            <div class="dash-card-header"><h6 class="mb-0 fw-700">Recent Quizzes</h6></div>
+            <div class="dash-card-body p-0">
+                {% if recent_quizzes %}
+                <table class="dash-table">
+                    <thead><tr><th>Quiz</th><th>Status</th><th>Price</th></tr></thead>
+                    <tbody>
+                    {% for q in recent_quizzes %}
+                    <tr>
+                        <td><a href="{% url 'vendor_quiz_questions' pk=q.pk %}" class="fw-600 text-decoration-none">{{ q.name }}</a></td>
+                        <td>{% include "quizzes/vendor/_status_badge.html" with status=q.status %}</td>
+                        <td>{% if q.is_paid %}৳{{ q.price }}{% else %}Free{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="dash-empty"><i class="bi bi-journal-text d-block"></i><p>No quizzes yet.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="dash-card">
+            <div class="dash-card-header"><h6 class="mb-0 fw-700">Recent Sales</h6></div>
+            <div class="dash-card-body p-0">
+                {% if recent_sales %}
+                <table class="dash-table">
+                    <thead><tr><th>Item</th><th>You earn</th></tr></thead>
+                    <tbody>
+                    {% for s in recent_sales %}
+                    <tr>
+                        <td><small>{% if s.quiz %}{{ s.quiz.name }}{% elif s.package %}{{ s.package.name }}{% else %}—{% endif %}</small></td>
+                        <td class="text-success fw-600">৳{{ s.vendor_earning }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="dash-empty"><i class="bi bi-cash-stack d-block"></i><p>No sales yet.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

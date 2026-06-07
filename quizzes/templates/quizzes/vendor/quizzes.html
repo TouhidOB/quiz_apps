@@ -1,0 +1,63 @@
+{% extends "quizzes/vendor/base.html" %}
+
+{% block title %}My Quizzes{% endblock %}
+{% block page_title %}My Quizzes{% endblock %}
+{% block page_subtitle %}Create quizzes, add questions, then submit for admin review{% endblock %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-end mb-4">
+    <a href="{% url 'vendor_quiz_create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-2"></i> New Quiz</a>
+</div>
+
+<div class="dash-card">
+    <div class="dash-card-body p-0">
+        {% if quizzes %}
+        <div class="table-responsive">
+            <table class="dash-table">
+                <thead>
+                    <tr>
+                        <th>Quiz</th><th>Category</th><th>Questions</th><th>Price</th><th>Status</th><th style="width:220px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for quiz in quizzes %}
+                <tr>
+                    <td>
+                        <div class="fw-600">{{ quiz.name }}</div>
+                        {% if quiz.status == 'rejected' and quiz.rejection_reason %}
+                        <small class="text-danger"><i class="bi bi-exclamation-circle me-1"></i>{{ quiz.rejection_reason }}</small>
+                        {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ quiz.department.name }}{% if quiz.subcategory %} › {{ quiz.subcategory.name }}{% endif %}</small></td>
+                    <td>
+                        <span class="fw-600 {% if quiz.question_count < quiz.total_questions %}text-warning{% else %}text-success{% endif %}">{{ quiz.question_count }}/{{ quiz.total_questions }}</span>
+                    </td>
+                    <td>{% if quiz.is_paid %}৳{{ quiz.price }}{% else %}<span class="text-muted">Free</span>{% endif %}</td>
+                    <td>{% include "quizzes/vendor/_status_badge.html" with status=quiz.status %}</td>
+                    <td>
+                        <div class="dash-actions">
+                            <a href="{% url 'vendor_quiz_questions' pk=quiz.pk %}" class="dash-action-btn" title="Manage Questions"><i class="bi bi-list-check"></i></a>
+                            <a href="{% url 'vendor_quiz_edit' pk=quiz.pk %}" class="dash-action-btn" title="Edit"><i class="bi bi-pencil"></i></a>
+                            {% if quiz.status == 'draft' or quiz.status == 'rejected' %}
+                            <form method="post" action="{% url 'vendor_quiz_submit' pk=quiz.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="dash-action-btn" style="color:#22c55e;" title="Submit for review"><i class="bi bi-send-fill"></i></button>
+                            </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'vendor_quiz_delete' pk=quiz.pk %}" class="d-inline" onsubmit="return confirm('Delete this quiz?');">
+                                {% csrf_token %}
+                                <button type="submit" class="dash-action-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="dash-empty"><i class="bi bi-journal-text d-block"></i><h5>No Quizzes Yet</h5><p>Create your first quiz to start selling.</p></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

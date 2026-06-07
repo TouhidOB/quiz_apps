@@ -72,7 +72,14 @@
             <!-- Action Buttons -->
             <div class="mt-4 d-flex gap-2 flex-wrap">
                 {% if user.is_authenticated %}
-                    {% if can_take and quiz.has_enough_questions %}
+                    {% if needs_purchase %}
+                    <form method="post" action="{% url 'quiz_purchase' slug=quiz.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-gradient btn-gradient-lg">
+                            <i class="bi bi-bag-check-fill me-2"></i> Buy for ৳{{ quiz.price }}
+                        </button>
+                    </form>
+                    {% elif can_take and quiz.has_enough_questions %}
                     <a href="{% url 'take_quiz' slug=quiz.slug %}" class="btn btn-gradient btn-gradient-lg">
                         <i class="bi bi-play-circle-fill me-2"></i>
                         {% if user_attempts %}Retake Quiz{% else %}Start Quiz{% endif %}
@@ -129,7 +136,7 @@
                 <h6 class="fw-700 mb-3"><i class="bi bi-clock-history me-2 text-gradient"></i>Your Attempts</h6>
                 {% for attempt in user_attempts %}
                 <a href="{% url 'quiz_result' attempt_id=attempt.id %}" class="d-block mb-2 text-decoration-none">
-                    <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background: rgba(255,255,255,0.03);">
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background: var(--glass-bg);">
                         <div>
                             <span class="fw-600 small {% if attempt.passed %}text-success{% else %}text-danger{% endif %}">
                                 {{ attempt.score }}/{{ attempt.total_marks }}

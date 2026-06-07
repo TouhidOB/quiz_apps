@@ -1,0 +1,254 @@
+/* ═══════════════════════════════════════════════════════════
+   QuizMaster — Public Restyle + CSS 3D
+   Loaded ONLY by the public base.html (after style.css).
+   Goal: lighter / calmer / flatter look + tasteful CSS-only 3D.
+   Dashboards do not load this file, so they stay unchanged.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Calmer palette (overrides apply to public pages only) ── */
+:root {
+    --bg-primary: #0d1117;
+    --bg-secondary: #11161f;
+    --bg-card: rgba(255, 255, 255, 0.025);
+    --bg-card-hover: rgba(255, 255, 255, 0.045);
+    --glass-bg: rgba(255, 255, 255, 0.025);
+    --glass-border: rgba(255, 255, 255, 0.07);
+    --glass-highlight: rgba(255, 255, 255, 0.06);
+
+    /* Single calm accent family — drop the busy pink end */
+    --accent-primary: #6366f1;
+    --accent-secondary: #818cf8;
+    --accent-tertiary: #a5b4fc;
+    --gradient-start: #6366f1;
+    --gradient-mid: #7c83f6;
+    --gradient-end: #818cf8;
+
+    --text-primary: #e8edf6;
+    --text-secondary: #9aa6bd;
+    --text-muted: #6b7689;
+
+    /* Softer, flatter shadows (no colored glow) */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.28);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.35);
+    --shadow-glow: 0 14px 30px rgba(0, 0, 0, 0.3);
+
+    --radius-md: 14px;
+    --radius-lg: 18px;
+}
+
+/* ─── Calmer animated background ───────────────────────────── */
+.bg-orb { opacity: 0.22; filter: blur(90px); }
+.bg-orb-3 { display: none; } /* fewer moving parts = calmer */
+
+/* ─── More breathing room across sections ──────────────────── */
+.hero-section { padding: 6rem 0 4rem; }
+.features-section,
+.how-it-works-section,
+.testimonials-section,
+.cta-section { padding-top: 5rem; padding-bottom: 5rem; }
+
+.section-header { margin-bottom: 3rem; }
+.section-subtitle { color: var(--text-secondary); }
+
+/* ─── Flatter glass: less blur, no glow, subtle borders ────── */
+.glass-card,
+.glass-card-static,
+.feature-card,
+.testimonial-card,
+.detail-stat,
+.stat-chip {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-sm);
+}
+
+/* remove the top highlight hairline for a flatter surface */
+.glass-card::before,
+.glass-card-static::before,
+.feature-card::before,
+.testimonial-card::before { display: none; }
+
+.glass-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--glass-border);
+    box-shadow: var(--shadow-md);
+}
+
+/* ─── Navbar / footer: flatter ─────────────────────────────── */
+.glass-navbar {
+    background: rgba(13, 17, 23, 0.8) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.brand-icon { box-shadow: none; }
+
+/* ─── Buttons: calmer, no heavy glow ───────────────────────── */
+.btn-gradient {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+    box-shadow: none;
+}
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ─── Icon tiles: flatter, calmer ──────────────────────────── */
+.dept-icon,
+.feature-icon-wrap {
+    box-shadow: none;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+}
+.feature-icon-wrap.gradient-1,
+.feature-icon-wrap.gradient-2,
+.feature-icon-wrap.gradient-3,
+.feature-icon-wrap.gradient-4,
+.feature-icon-wrap.gradient-5,
+.feature-icon-wrap.gradient-6 {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+}
+.dept-card:hover .dept-icon { box-shadow: none; }
+
+/* ─── Equal-height department cards ────────────────────────── */
+/* Make each card fill its (already equal-height) column and push the
+   quiz-count footer to the bottom so all cards line up regardless of
+   description length. */
+#departments .dept-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+#departments .dept-card .dept-quiz-count { margin-top: auto; }
+
+/* ═══════════════════════════════════════════════════════════
+   CSS-ONLY 3D
+   ═══════════════════════════════════════════════════════════ */
+
+/* Give card grids perspective so children can tilt in depth. */
+.tilt-scene { perspective: 1100px; }
+
+/* JS adds .tilt-3d to interactive cards. Inline transform from JS
+   drives the rotation; we just set up depth + smoothing here. */
+.tilt-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+                box-shadow 0.25s ease;
+    will-change: transform;
+}
+.tilt-3d:hover { box-shadow: var(--shadow-lg); }
+
+/* Lift inner content toward the viewer for a parallax-in-card feel */
+.tilt-3d .feature-icon-wrap,
+.tilt-3d .dept-icon,
+.tilt-3d .testimonial-quote,
+.tilt-3d .step-number {
+    transform: translateZ(38px);
+    transition: transform 0.25s ease;
+}
+.tilt-3d h3, .tilt-3d h4, .tilt-3d h5 { transform: translateZ(22px); }
+.tilt-3d p { transform: translateZ(12px); }
+
+/* Glare sheen that follows the pointer (position set via JS vars) */
+.tilt-3d::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle at var(--mx, 50%) var(--my, 0%),
+        rgba(255, 255, 255, 0.12), transparent 45%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+.tilt-3d:hover::after { opacity: 1; }
+
+/* ─── Hero 3D floating scene ────────────────────────────────── */
+.hero-section { position: relative; overflow: hidden; }
+
+.hero-3d {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    perspective: 1000px;
+    pointer-events: none;
+}
+.hero-section .container { position: relative; z-index: 1; }
+
+.float-card {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: var(--accent-tertiary);
+    box-shadow: var(--shadow-md);
+    transform-style: preserve-3d;
+    animation: floatY 9s ease-in-out infinite;
+}
+.float-card i { font-size: 1.6rem; }
+
+.float-card.fc-1 {
+    width: 92px; height: 92px; top: 16%; left: 11%;
+    animation-duration: 10s;
+    transform: rotateX(12deg) rotateY(-18deg);
+}
+.float-card.fc-2 {
+    width: 72px; height: 72px; top: 58%; left: 17%;
+    animation-duration: 12s; animation-delay: -3s;
+    transform: rotateX(-10deg) rotateY(16deg);
+}
+.float-card.fc-3 {
+    width: 80px; height: 80px; top: 22%; right: 12%;
+    animation-duration: 11s; animation-delay: -1.5s;
+    transform: rotateX(14deg) rotateY(20deg);
+}
+.float-card.fc-4 {
+    width: 64px; height: 64px; top: 64%; right: 16%;
+    animation-duration: 13s; animation-delay: -5s;
+    transform: rotateX(-12deg) rotateY(-14deg);
+}
+
+@keyframes floatY {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -22px; }
+}
+
+@media (max-width: 991px) {
+    .float-card.fc-1, .float-card.fc-2 { left: 2%; }
+    .float-card.fc-3, .float-card.fc-4 { right: 2%; }
+    .float-card { opacity: 0.5; }
+}
+@media (max-width: 575px) {
+    .hero-3d { display: none; } /* keep mobile clean & simple */
+}
+
+/* ─── Scroll reveal (JS toggles .in-view) ──────────────────── */
+.reveal {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+    will-change: opacity, transform;
+}
+.reveal.in-view { opacity: 1; transform: none; }
+
+/* ─── Light theme: public-specific surfaces ────────────────── */
+html[data-theme="light"] .glass-navbar { background: rgba(255, 255, 255, 0.82) !important; }
+html[data-theme="light"] .bg-orb { opacity: 0.14; }
+html[data-theme="light"] .float-card {
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--accent-primary);
+}
+
+/* ─── Respect reduced motion ───────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .bg-orb, .float-card { animation: none !important; }
+    .tilt-3d { transition: none !important; }
+    .reveal { opacity: 1 !important; transform: none !important; transition: none; }
+}

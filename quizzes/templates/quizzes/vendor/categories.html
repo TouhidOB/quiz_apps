@@ -1,0 +1,60 @@
+{% extends "quizzes/vendor/base.html" %}
+
+{% block title %}Categories{% endblock %}
+{% block page_title %}Categories{% endblock %}
+{% block page_subtitle %}Propose new categories & subcategories — they appear publicly once an admin approves them{% endblock %}
+
+{% block dash_content %}
+<div class="d-flex justify-content-end gap-2 mb-4">
+    <a href="{% url 'vendor_category_create' %}" class="btn btn-gradient"><i class="bi bi-plus-lg me-2"></i> New Category</a>
+    <a href="{% url 'vendor_subcategory_create' %}" class="btn btn-glass"><i class="bi bi-plus-lg me-2"></i> New Subcategory</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="dash-card">
+            <div class="dash-card-header"><h5><i class="bi bi-collection-fill me-2"></i>My Categories</h5></div>
+            <div class="dash-card-body p-0">
+                {% if my_departments %}
+                <table class="dash-table">
+                    <thead><tr><th>Name</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for d in my_departments %}
+                    <tr>
+                        <td><i class="bi {{ d.icon }} me-2"></i>{{ d.name }}</td>
+                        <td>{% if d.is_approved %}<span class="quiz-badge badge-pass">Approved</span>{% else %}<span class="quiz-badge" style="background:rgba(59,130,246,0.12);color:#3b82f6;">Pending</span>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="dash-empty"><i class="bi bi-collection d-block"></i><p>No categories proposed yet.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="dash-card">
+            <div class="dash-card-header"><h5><i class="bi bi-diagram-3-fill me-2"></i>My Subcategories</h5></div>
+            <div class="dash-card-body p-0">
+                {% if my_subcategories %}
+                <table class="dash-table">
+                    <thead><tr><th>Name</th><th>Category</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for s in my_subcategories %}
+                    <tr>
+                        <td>{{ s.name }}</td>
+                        <td><small class="text-muted">{{ s.department.name }}</small></td>
+                        <td>{% if s.is_approved %}<span class="quiz-badge badge-pass">Approved</span>{% else %}<span class="quiz-badge" style="background:rgba(59,130,246,0.12);color:#3b82f6;">Pending</span>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="dash-empty"><i class="bi bi-diagram-3 d-block"></i><p>No subcategories proposed yet.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

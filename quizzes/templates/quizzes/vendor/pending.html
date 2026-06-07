@@ -1,0 +1,35 @@
+{% extends "quizzes/base.html" %}
+
+{% block title %}Vendor Application — QuizMaster{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="auth-card glass-card text-center">
+                    {% if profile.status == 'rejected' %}
+                        <div class="brand-icon mx-auto mb-3" style="background: rgba(239,68,68,0.15); color:#ef4444;"><i class="bi bi-x-octagon-fill"></i></div>
+                        <h2 class="fw-800">Application Rejected</h2>
+                        <p class="text-muted">Unfortunately your vendor application was not approved.</p>
+                        {% if profile.rejection_reason %}
+                        <div class="alert alert-danger glass-alert text-start mt-3">
+                            <strong>Reason:</strong> {{ profile.rejection_reason }}
+                        </div>
+                        {% endif %}
+                    {% elif profile.status == 'suspended' %}
+                        <div class="brand-icon mx-auto mb-3" style="background: rgba(245,158,11,0.15); color:#f59e0b;"><i class="bi bi-pause-circle-fill"></i></div>
+                        <h2 class="fw-800">Account Suspended</h2>
+                        <p class="text-muted">Your vendor account has been suspended. Please contact support.</p>
+                    {% else %}
+                        <div class="brand-icon mx-auto mb-3" style="background: rgba(59,130,246,0.15); color:#3b82f6;"><i class="bi bi-hourglass-split"></i></div>
+                        <h2 class="fw-800">Application Pending</h2>
+                        <p class="text-muted">Thanks, <strong>{{ profile.store_name }}</strong>! Your vendor application is under review. You'll get full access once an admin approves it.</p>
+                    {% endif %}
+                    <a href="{% url 'home' %}" class="btn btn-glass mt-2"><i class="bi bi-house-fill me-2"></i> Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

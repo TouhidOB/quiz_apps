@@ -1,0 +1,41 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Package Review{% endblock %}
+{% block page_title %}Package Review Queue{% endblock %}
+{% block page_subtitle %}Approve or reject vendor-submitted packages{% endblock %}
+
+{% block dash_content %}
+<div class="d-flex gap-2 mb-4">
+    <a href="{% url 'dashboard_review_quizzes' %}" class="btn btn-sm btn-glass">Quizzes</a>
+    <a href="{% url 'dashboard_review_packages' %}" class="btn btn-sm btn-gradient">Packages</a>
+    <a href="{% url 'dashboard_review_categories' %}" class="btn btn-sm btn-glass">Categories</a>
+</div>
+
+<div class="dash-card">
+    <div class="dash-card-body p-0">
+        {% if packages %}
+        <table class="dash-table">
+            <thead><tr><th>Package</th><th>Vendor</th><th>Quizzes</th><th>Price</th><th style="width:200px;">Actions</th></tr></thead>
+            <tbody>
+            {% for p in packages %}
+            <tr>
+                <td><div class="fw-600">{{ p.name }}</div><small class="text-muted">Submitted {{ p.submitted_at|date:"M d, Y H:i" }}</small></td>
+                <td>{{ p.owner.get_full_name|default:p.owner.username }}</td>
+                <td>{{ p.quizzes.count }}</td>
+                <td>৳{{ p.effective_price }}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <form method="post" action="{% url 'dashboard_review_package_action' pk=p.pk %}">{% csrf_token %}<input type="hidden" name="action" value="approve"><button class="btn btn-sm btn-success">Approve</button></form>
+                        <form method="post" action="{% url 'dashboard_review_package_action' pk=p.pk %}" onsubmit="var r=prompt('Reason for rejection:');if(r===null)return false;this.reason.value=r;">{% csrf_token %}<input type="hidden" name="action" value="reject"><input type="hidden" name="reason"><button class="btn btn-sm btn-outline-danger">Reject</button></form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="dash-empty"><i class="bi bi-box-seam d-block"></i><h5>Queue Empty</h5><p>No packages are waiting for review.</p></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

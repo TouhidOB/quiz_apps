@@ -1,0 +1,34 @@
+{% extends "quizzes/vendor/base.html" %}
+
+{% block title %}{{ action }} Package{% endblock %}
+{% block page_title %}{{ action }} Package{% endblock %}
+{% block page_subtitle %}Select from your published quizzes{% endblock %}
+
+{% block dash_content %}
+<div class="dash-form-card" style="max-width: 720px;">
+    <form method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+        <div class="alert alert-danger glass-alert mb-3"><i class="bi bi-exclamation-triangle-fill me-2"></i> Please fix the errors below.</div>
+        {% endif %}
+        <div class="row g-3">
+            <div class="col-md-8"><label class="form-label">Package Name <span class="text-danger">*</span></label>{{ form.name }}
+                {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4"><label class="form-label">Icon</label>{{ form.icon }}</div>
+            <div class="col-md-6"><label class="form-label">Price (৳)</label>{{ form.price }}</div>
+            <div class="col-md-6"><label class="form-label">Discount Price (৳)</label>{{ form.discount_price }}</div>
+            <div class="col-12"><label class="form-label">Description <span class="text-danger">*</span></label>{{ form.description }}</div>
+            <div class="col-12">
+                <label class="form-label">Included Quizzes</label>
+                {{ form.quizzes }}
+                <small class="text-muted d-block mt-1">{{ form.quizzes.help_text }}</small>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-gradient"><i class="bi bi-check-lg me-2"></i> {{ action }} Package</button>
+            <a href="{% url 'vendor_packages' %}" class="btn btn-glass">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

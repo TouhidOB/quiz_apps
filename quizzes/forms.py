@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Department, Quiz, Question, Choice, Package
+from .models import (
+    Department, Quiz, Question, Choice, Package,
+    VendorProfile, SubCategory, PlatformSetting,
+)
 
 
 class GoogleDocUploadForm(forms.Form):
@@ -417,3 +420,207 @@ class CSVJSONUploadForm(forms.Form):
         label='Replace existing questions',
         help_text='If checked, all existing questions will be deleted before import.'
     )
+
+
+# ─── Vendor Marketplace Forms ──────────────────────────────────
+
+
+class VendorRegisterForm(UserCreationForm):
+    """Dedicated registration for third-party vendors. Creates a User plus a
+    pending VendorProfile."""
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email address'})
+    )
+    first_name = forms.CharField(
+        max_length=30, required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'})
+    )
+    last_name = forms.CharField(
+        max_length=30, required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last name'})
+    )
+    store_name = forms.CharField(
+        max_length=200, required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your store / brand name'})
+    )
+    phone = forms.CharField(
+        max_length=30, required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone (optional)'})
+    )
+    website = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https:// (optional)'})
+    )
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control', 'rows': 3,
+            'placeholder': 'Tell us about the content you plan to sell (optional)...'
+        })
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Username'})
+        self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
+        self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm password'})
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        if commit:
+            user.save()
+            VendorProfile.objects.create(
+                user=user,
+                store_name=self.cleaned_data['store_name'],
+                phone=self.cleaned_data.get('phone', ''),
+                website=self.cleaned_data.get('website', ''),
+                description=self.cleaned_data.get('description', ''),
+                status='pending',
+            )
+        return user
+
+
+class VendorQuizForm(forms.ModelForm):
+    """Quiz create/edit form for vendors. Excludes publishing controls — vendors
+    submit for review instead. Scoped category/subcategory choices are set by the view."""
+    class Meta:
+        model = Quiz
+        fields = (
+            'department', 'subcategory', 'name', 'prerequisites',
+            'total_questions', 'mark_per_question', 'pass_mark',
+            'time_limit', 'price', 'allow_retake', 'shuffle_questions',
+            'show_instant_feedback', 'per_question_time_limit',
+        )
+        widgets = {
+            'department': forms.Select(attrs={'class': 'form-select'}),
+            'subcategory': forms.Select(attrs={'class': 'form-select'}),
+            'name': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'e.g. Python Fundamentals',
+            }),
+            'prerequisites': forms.Textarea(attrs={
+                'class': 'form-control', 'rows': 3,
+                'placeholder': 'List prerequisites or knowledge required...',
+            }),
+            'total_questions': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'mark_per_question': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.25', 'min': '0.25'}),
+            'pass_mark': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0'}),
+            'time_limit': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'placeholder': 'Minutes'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': '0.00 = free'}),
+            'per_question_time_limit': forms.NumberInput(attrs={'class': 'form-control', 'min': 5, 'placeholder': 'Seconds (optional)'}),
+            'allow_retake': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'shuffle_questions': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'show_instant_feedback': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+    def __init__(self, *args, vendor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Vendors may pick admin-approved categories or their own (even if pending approval).
+        dept_qs = Department.objects.filter(is_approved=True)
+        sub_qs = SubCategory.objects.filter(is_approved=True)
+        if vendor is not None:
+            dept_qs = (Department.objects.filter(is_approved=True) |
+                       Department.objects.filter(created_by=vendor)).distinct()
+            sub_qs = (SubCategory.objects.filter(is_approved=True) |
+                      SubCategory.objects.filter(created_by=vendor)).distinct()
+        self.fields['department'].queryset = dept_qs.order_by('name')
+        self.fields['subcategory'].queryset = sub_qs.order_by('department__name', 'name')
+        self.fields['subcategory'].required = False
+
+
+class SubCategoryForm(forms.ModelForm):
+    """Vendor/admin form to create a subcategory under a department."""
+    icon = forms.ChoiceField(
+        choices=[('bi-folder-fill', '📁 Folder')] + BOOTSTRAP_ICON_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    class Meta:
+        model = SubCategory
+        fields = ('department', 'name', 'description', 'icon')
+        widgets = {
+            'department': forms.Select(attrs={'class': 'form-select'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Data Structures'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+    def __init__(self, *args, vendor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        dept_qs = Department.objects.filter(is_approved=True)
+        if vendor is not None:
+            dept_qs = (Department.objects.filter(is_approved=True) |
+                       Department.objects.filter(created_by=vendor)).distinct()
+        self.fields['department'].queryset = dept_qs.order_by('name')
+
+
+class VendorCategoryForm(forms.ModelForm):
+    """Vendor form to propose a new top-level category (Department)."""
+    icon = forms.ChoiceField(
+        choices=BOOTSTRAP_ICON_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    class Meta:
+        model = Department
+        fields = ('name', 'description', 'icon')
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Data Science'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+
+class VendorPackageForm(forms.ModelForm):
+    """Package create/edit form for vendors, limited to their own approved quizzes."""
+    icon = forms.ChoiceField(
+        choices=BOOTSTRAP_ICON_CHOICES + [
+            ('bi-box-seam-fill', '📦 Package'),
+            ('bi-boxes', '📦 Boxes'),
+            ('bi-award-fill', '🏅 Award'),
+            ('bi-stars', '⭐ Stars'),
+            ('bi-gem', '💎 Gem'),
+            ('bi-rocket-takeoff-fill', '🚀 Rocket'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    quizzes = forms.ModelMultipleChoiceField(
+        queryset=Quiz.objects.none(),
+        widget=forms.SelectMultiple(attrs={'class': 'form-select', 'size': 8}),
+        required=False,
+        help_text='Select your published quizzes to include in this package.'
+    )
+
+    class Meta:
+        model = Package
+        fields = ('name', 'description', 'icon', 'price', 'discount_price', 'quizzes')
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Complete Python Bundle'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': '0.00'}),
+            'discount_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Optional sale price'}),
+        }
+
+    def __init__(self, *args, vendor=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if vendor is not None:
+            self.fields['quizzes'].queryset = Quiz.objects.filter(
+                owner=vendor, is_published=True
+            ).order_by('name')
+
+
+class PlatformSettingForm(forms.ModelForm):
+    """Admin form to edit platform-wide settings."""
+    class Meta:
+        model = PlatformSetting
+        fields = ('vendor_fee_per_sale',)
+        widgets = {
+            'vendor_fee_per_sale': forms.NumberInput(attrs={
+                'class': 'form-control', 'step': '0.01', 'min': '0',
+            }),
+        }

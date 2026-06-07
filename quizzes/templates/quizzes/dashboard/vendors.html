@@ -1,0 +1,57 @@
+{% extends "quizzes/dashboard/base.html" %}
+
+{% block title %}Vendors{% endblock %}
+{% block page_title %}Vendors{% endblock %}
+{% block page_subtitle %}{{ pending_count }} application(s) awaiting review{% endblock %}
+
+{% block dash_content %}
+<div class="d-flex gap-2 mb-4">
+    <a href="{% url 'dashboard_vendors' %}" class="btn btn-sm {% if not status_filter %}btn-gradient{% else %}btn-glass{% endif %}">All</a>
+    <a href="?status=pending" class="btn btn-sm {% if status_filter == 'pending' %}btn-gradient{% else %}btn-glass{% endif %}">Pending</a>
+    <a href="?status=approved" class="btn btn-sm {% if status_filter == 'approved' %}btn-gradient{% else %}btn-glass{% endif %}">Approved</a>
+    <a href="?status=rejected" class="btn btn-sm {% if status_filter == 'rejected' %}btn-gradient{% else %}btn-glass{% endif %}">Rejected</a>
+    <a href="?status=suspended" class="btn btn-sm {% if status_filter == 'suspended' %}btn-gradient{% else %}btn-glass{% endif %}">Suspended</a>
+</div>
+
+<div class="dash-card">
+    <div class="dash-card-body p-0">
+        {% if vendors %}
+        <table class="dash-table">
+            <thead><tr><th>Store</th><th>User</th><th>Email</th><th>Status</th><th>Sales</th><th>Earnings</th><th style="width:240px;">Actions</th></tr></thead>
+            <tbody>
+            {% for v in vendors %}
+            <tr>
+                <td><div class="fw-600">{{ v.store_name }}</div>{% if v.phone %}<small class="text-muted">{{ v.phone }}</small>{% endif %}</td>
+                <td>{{ v.user.get_full_name|default:v.user.username }}</td>
+                <td><small class="text-muted">{{ v.user.email }}</small></td>
+                <td>
+                    {% if v.status == 'approved' %}<span class="quiz-badge badge-pass">Approved</span>
+                    {% elif v.status == 'pending' %}<span class="quiz-badge" style="background:rgba(59,130,246,0.12);color:#3b82f6;">Pending</span>
+                    {% elif v.status == 'rejected' %}<span class="quiz-badge badge-fail">Rejected</span>
+                    {% else %}<span class="quiz-badge" style="background:rgba(245,158,11,0.12);color:#f59e0b;">Suspended</span>{% endif %}
+                </td>
+                <td>{{ v.total_sales }}</td>
+                <td>৳{{ v.total_earnings }}</td>
+                <td>
+                    <div class="d-flex gap-1 flex-wrap">
+                        {% if v.status != 'approved' %}
+                        <form method="post" action="{% url 'dashboard_vendor_action' pk=v.pk %}">{% csrf_token %}<input type="hidden" name="action" value="approve"><button class="btn btn-sm btn-success">Approve</button></form>
+                        {% endif %}
+                        {% if v.status != 'rejected' %}
+                        <form method="post" action="{% url 'dashboard_vendor_action' pk=v.pk %}" onsubmit="var r=prompt('Reason for rejection:');if(r===null)return false;this.reason.value=r;">{% csrf_token %}<input type="hidden" name="action" value="reject"><input type="hidden" name="reason"><button class="btn btn-sm btn-outline-danger">Reject</button></form>
+                        {% endif %}
+                        {% if v.status == 'approved' %}
+                        <form method="post" action="{% url 'dashboard_vendor_action' pk=v.pk %}">{% csrf_token %}<input type="hidden" name="action" value="suspend"><button class="btn btn-sm btn-outline-warning">Suspend</button></form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="dash-empty"><i class="bi bi-shop d-block"></i><h5>No Vendors</h5><p>No vendor applications match this filter.</p></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
